@@ -4,6 +4,7 @@ library(scales)
 library(readr)
 library(lubridate)
 library(stargazer)
+library(tidyr)
 library(stringr)
 library(tidyverse)
 library(purrr)
@@ -49,7 +50,6 @@ data_basic <- ccc_metadata %>%
     type_verdict3=type_verdict[3],
     final_verdict=type_verdict[[length(type_verdict)]],
     n_citations=length(citations),
-    n_cited=sapply(case_id, function(x) sum(sapply(data_basic$citations, function(cit) x %in% cit))),
     disputed_act1=disputed_act[1],
     disputed_act2=disputed_act[2],
     disputed_act3=disputed_act[3],
@@ -77,8 +77,25 @@ data_basic <- ccc_metadata %>%
   mutate(outcome=(outcome=="granted")) %>%
   mutate(length_proceeding=case_when(length_proceeding<0 ~ NA,
                                      TRUE~length_proceeding))
-# creating a var that captures how many times it was cited
 
+case_citations_count <- ccc_metadata %>%
+  unnest(citations) %>%
+  group_by(citations, doc_id) %>%
+  summarise(cited=n()) %>%
+  rename(case_id=citations) %>%
+  mutate(case_id=str_replace(case_id,"\n","")) %>%
+   left_join(
+    ccc_metadata %>%
+      select(doc_id, case_id) %>%
+      mutate(last_char = as.numeric(str_sub(doc_id, -1))) %>%
+      group_by(case_id) %>%
+      filter(last_char == max(last_char)) %>%
+      select(-last_char)
+  )
+
+data_basic <- data_basic %>% left_join(case_citations_count, by='doc_id')
+
+data_basic <- data_basic %>% replace_na(list(cited = 0))
 
 judges <- ccc_judges %>% group_by(judge_id) %>%
 summarise(judge_term_start=min(ymd(judge_term_start)),
@@ -113,10 +130,14 @@ sample1623 <- sample1623 %>% filter(official1623==FALSE,
                                   official16232==FALSE,
                                   official16233==FALSE, !unresolved_rotation)
 
+ggplot(sample1623, aes(x=cited)) +
+  geom_histogram()
+
+
 
 selected_vars <- c("n_applicants", "n_citations", "n_disputed_act",
                    "n_concerned_act","n_concerned_cact", "length_proceeding", "controversial", "meritory", 
-                   "has_popular_name", "outcome")  # Replace with your variables
+                   "cited", "outcome")  # Replace with your variables
 
 desc_stats_num <- sample1623%>%
   select(all_of(selected_vars)) %>%
@@ -158,14 +179,14 @@ reduced_model_outcome <- lm(outcome~year_decision+judge_rapporteur_id+
 
 anova(reduced_model_outcome, full_model_outcome)
 
-full_model_has_popular_name <- lm(has_popular_name~chamber_id+year_decision+judge_rapporteur_id+
+full_model_cited <- lm(cited~chamber_id+year_decision+judge_rapporteur_id+
                                     judge1+judge2+judge3
                                   , sample1623)
-reduced_model_has_popular_name <- lm(has_popular_name~year_decision+judge_rapporteur_id+
+reduced_model_cited <- lm(cited~year_decision+judge_rapporteur_id+
                                        judge1+judge2+judge3
                                      , sample1623)
 
-anova(reduced_model_has_popular_name, full_model_has_popular_name)
+anova(reduced_model_cited, full_model_cited)
 
 full_model_length_proceeding <- lm(length_proceeding~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
                    judge1+judge2+judge3+n_applicants+controversial+
@@ -194,24 +215,23 @@ reduced_model_outcome <- lm(outcome~year_decision+type_proceedings+importance+ju
 
  anova(reduced_model_outcome, full_model_outcome)
 
-full_model_has_popular_name <- lm(has_popular_name~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
+full_model_cited <- lm(cited~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
                            judge1+judge2+judge3+n_applicants+controversial+
                            n_disputed_act +
                            n_concerned_act + n_concerned_cact + n_topics + 
                             n_topicsc, sample1623)
-reduced_model_has_popular_name <- lm(has_popular_name~year_decision+type_proceedings+importance+judge_rapporteur_id+
+reduced_model_cited <- lm(cited~year_decision+type_proceedings+importance+judge_rapporteur_id+
                               judge1+judge2+judge3+n_applicants+
                               n_disputed_act +controversial+
                               n_concerned_act + n_concerned_cact +  n_topics + 
                               n_topicsc, sample1623)
 
-anova(reduced_model_has_popular_name, full_model_has_popular_name)
+anova(reduced_model_cited, full_model_cited)
 
-# Would there be a reasonable way to incorporate the influentiality of the decision? yes, number of citations per year
 
 # now estimating the chamber fixed effects for each outcome and each chamber
-coefficients_lp <- coef(full_model_length_proceeding)
-chamber_effects <- coefficients[grepl("chamber_id", names(coefficients_lp))]
+coefficients <- coef(full_model_length_proceeding)
+chamber_effects <- coefficients[grepl("chamber_id", names(coefficients))]
 chamber_effects_lp <- data.frame(
   chamber_id = str_replace(names(chamber_effects) , "chamber_id",""),
   FE_lp = chamber_effects, row.names= NULL
@@ -219,8 +239,8 @@ chamber_effects_lp <- data.frame(
 
 sample1623CE <- left_join(sample1623,chamber_effects_lp, by="chamber_id")
 
-coefficients_o <- coef(full_model_outcome)
-chamber_effects <- coefficients[grepl("chamber_id", names(coefficients_o))]
+coefficients <- coef(full_model_outcome)
+chamber_effects <- coefficients[grepl("chamber_id", names(coefficients))]
 chamber_effects_o <- data.frame(
   chamber_id = str_replace(names(chamber_effects) , "chamber_id",""),
   FE_o = chamber_effects, row.names= NULL
@@ -229,19 +249,19 @@ chamber_effects_o <- data.frame(
 sample1623CE <- left_join(sample1623CE,chamber_effects_o, by="chamber_id")
 
 
-coefficients_hpn <- coef(full_model_has_popular_name)
-chamber_effects <- coefficients[grepl("chamber_id", names(coefficients_hpn))]
-chamber_effects_hpn <- data.frame(
+coefficients <- coef(full_model_cited)
+chamber_effects <- coefficients[grepl("chamber_id", names(coefficients))]
+chamber_effects_cit <- data.frame(
   chamber_id = str_replace(names(chamber_effects) , "chamber_id",""),
-  FE_hpn = chamber_effects, row.names= NULL
+  FE_cit = chamber_effects, row.names= NULL
 )
 
-sample1623CE <- left_join(sample1623CE,chamber_effects_hpn, by="chamber_id")
+sample1623CE <- left_join(sample1623CE,chamber_effects_cit, by="chamber_id")
 
 
 
 # Regressing the chamber fixed effect on the characteristics of the chamber
-sample1623CE<- sample1623CE%>% mutate(average_age=(judge_age+judge_age2+judge_age3)/3,
+sample1623CE<- sample1623CE %>% mutate(average_age=(judge_age+judge_age2+judge_age3)/3,
                                   var_age=(judge_age^2+judge_age2^2+judge_age3^2)/3-(judge_age+judge_age2+judge_age3)^2/9) %>%
   rowwise() %>%
   mutate(background = str_c(sort(c(str_sub(judge_profession, 1, 1), 
@@ -264,54 +284,54 @@ summary(length_proceeding)
 outcome <- lm(FE_o ~  average_age+ var_age +background+uni+gender,  sample1623CE)
 summary(outcome)
 
-has_popular_name <- lm(FE_hpn~  average_age+ var_age +background+uni+gender,  sample1623CE)
-summary(has_popular_name)
+cited <- lm(FE_cit~  average_age+ var_age +background+uni+gender,  sample1623CE)
+summary(cited)
 
 length_proceeding_C <- lm(length_proceeding~     n_applicants+
                              n_disputed_act +controversial+
                              n_concerned_act + n_concerned_cact + n_topics + 
-                             + average_age+ var_age +background+uni+gender, sample1623)
+                             + average_age+ var_age +background+uni+gender, sample1623CE)
 summary(length_proceeding_C)
 
 outcome_C <- lm(outcome~ n_applicants+
                    n_disputed_act +controversial+
                    n_concerned_act + n_concerned_cact + n_topics + 
-                   + average_age+ var_age +background+uni+gender, sample1623)
+                   + average_age+ var_age +background+uni+gender, sample1623CE)
 summary(outcome_C)
 
-has_popular_name_C <- lm(has_popular_name~ n_applicants+
+cited_C <- lm(cited~ n_applicants+
                             n_disputed_act +controversial+
                             n_concerned_act + n_concerned_cact + n_topics + 
-                            + average_age+ var_age +background+uni+gender,  sample1623)
-summary(has_popular_name_C)
+                            + average_age+ var_age +background+uni+gender,  sample1623CE)
+summary(cited_C)
 
 length_proceeding_CF <- lm(length_proceeding~     n_applicants+judge_rapporteur_id+
                                      n_disputed_act +controversial+
                                      n_concerned_act + n_concerned_cact + n_topics + 
-                                    + average_age+ var_age +background+uni+gender, sample1623)
+                                    + average_age+ var_age +background+uni+gender, sample1623CE)
 summary(length_proceeding_CF)
 
 meritory_CF <- lm(meritory~     n_applicants+judge_rapporteur_id+
                              n_disputed_act +controversial+
                              n_concerned_act + n_concerned_cact + n_topics + 
-                             + average_age+ var_age +background+uni+gender, sample1623)
+                             + average_age+ var_age +background+uni+gender, sample1623CE)
 summary(meritory_CF)
 
 outcome_CF <- lm(outcome~ n_applicants+judge_rapporteur_id+
                 n_disputed_act +controversial+
                 n_concerned_act + n_concerned_cact + n_topics + 
-                + average_age+ var_age +background+uni+gender,  sample1623)
+                + average_age+ var_age +background+uni+gender,  sample1623CE)
 summary(outcome_CF)
 
-has_popular_name_CF <- lm(has_popular_name~ n_applicants+judge_rapporteur_id+
+cited_CF <- lm(cited~ n_applicants+judge_rapporteur_id+
                          n_disputed_act +controversial+
                          n_concerned_act + n_concerned_cact + n_topics + 
-                         + average_age+ var_age +background+uni+gender, sample1623)
-summary(has_popular_name_CF)
+                         + average_age+ var_age +background+uni+gender, sample1623CE)
+summary(cited_CF)
 
 stargazer(
-          length_proceeding_C,outcome_C,has_popular_name_C,
-          length_proceeding_CF,outcome_CF,has_popular_name_CF, omit=c("^judge", "^n"))
+          length_proceeding_C,outcome_C,cited_C,
+          length_proceeding_CF,outcome_CF,cited_CF, omit=c("^judge", "^n", "controversial"))
 
 
 ########### chamber_id balance ########
