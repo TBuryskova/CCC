@@ -251,7 +251,7 @@ sample1623CE <- left_join(sample1623CE,chamber_effects_cit, by="chamber_id")
 
 
 # Regressing the chamber fixed effect on the characteristics of the chamber
-sample1623CE<- sample1623CE %>% mutate(average_age=(judge_age+judge_age2+judge_age3)/3,
+sample1623CE<- sample1623CE %>% mutate(average_yob=(judge_age+judge_age2+judge_age3)/3,
                                   var_age=(judge_age^2+judge_age2^2+judge_age3^2)/3-(judge_age+judge_age2+judge_age3)^2/9) %>%
   rowwise() %>%
   mutate(background = str_c(sort(c(str_sub(judge_profession, 1, 1), 
@@ -391,7 +391,7 @@ aov(n_concerned_cact ~ chamber_id, balance) %>% summary()
 aov(controversial ~ chamber_id, balance) %>% summary()
 
 balance <- sample1623%>% group_by(chamber_id) %>%
-  summarise(n=n())
+  summarise(n_cases=n())
 
 
 ggplot(balance, aes(n)) +
