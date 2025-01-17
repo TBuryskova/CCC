@@ -184,45 +184,45 @@ reduced_model_has_popular_name_100 <- lm(has_popular_name~year_decision+judge_ra
 
 anova(reduced_model_has_popular_name_100, full_model_has_popular_name_100)
 
-full_model_length_proceeding_100 <- lm(length_proceeding~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
-                   judge1+judge2+judge3+n_applicants+controversial+
-                   n_disputed_act +
-                   n_concerned_act + n_concerned_cact + n_topics + 
-                  n_topicsc, sample1623_100)
-reduced_model_length_proceeding_100 <- lm(length_proceeding~year_decision+type_proceedings+importance+judge_rapporteur_id+
-                      judge1+judge2+judge3+n_applicants+controversial+
-                      n_disputed_act +
-                      n_concerned_act + n_concerned_cact +  n_topics + 
-                       n_topicsc, sample1623_100)
-
-anova(reduced_model_length_proceeding_100, full_model_length_proceeding_100)
-
-
-full_model_outcome_100 <- lm(outcome~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
-                   judge1+judge2+judge3+n_applicants+controversial+
-                   n_disputed_act +
-                   n_concerned_act + n_concerned_cact  + n_topics +
-                 n_topicsc, sample1623_100)
-reduced_model_outcome_100 <- lm(outcome~year_decision+type_proceedings+importance+judge_rapporteur_id+
-                      judge1+judge2+judge3+n_applicants+controversial+
-                      n_disputed_act +
-                      n_concerned_act + n_concerned_cact + n_topics +
-                       n_topicsc, sample1623_100)
-
- anova(reduced_model_outcome_100, full_model_outcome_100)
-
-full_model_has_popular_name_100 <- lm(has_popular_name~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
-                           judge1+judge2+judge3+n_applicants+controversial+
-                           n_disputed_act +
-                           n_concerned_act + n_concerned_cact + n_topics + 
-                            n_topicsc, sample1623_100)
-reduced_model_has_popular_name_100 <- lm(has_popular_name~year_decision+type_proceedings+importance+judge_rapporteur_id+
-                              judge1+judge2+judge3+n_applicants+
-                              n_disputed_act +controversial+
-                              n_concerned_act + n_concerned_cact +  n_topics + 
-                              n_topicsc, sample1623_100)
-
-anova(reduced_model_has_popular_name_100, full_model_has_popular_name_100)
+# full_model_length_proceeding_100 <- lm(length_proceeding~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
+#                    judge1+judge2+judge3+n_applicants+controversial+
+#                    n_disputed_act +
+#                    n_concerned_act + n_concerned_cact + n_topics + 
+#                   n_topicsc, sample1623_100)
+# reduced_model_length_proceeding_100 <- lm(length_proceeding~year_decision+type_proceedings+importance+judge_rapporteur_id+
+#                       judge1+judge2+judge3+n_applicants+controversial+
+#                       n_disputed_act +
+#                       n_concerned_act + n_concerned_cact +  n_topics + 
+#                        n_topicsc, sample1623_100)
+# 
+# anova(reduced_model_length_proceeding_100, full_model_length_proceeding_100)
+# 
+# 
+# full_model_outcome_100 <- lm(outcome~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
+#                    judge1+judge2+judge3+n_applicants+controversial+
+#                    n_disputed_act +
+#                    n_concerned_act + n_concerned_cact  + n_topics +
+#                  n_topicsc, sample1623_100)
+# reduced_model_outcome_100 <- lm(outcome~year_decision+type_proceedings+importance+judge_rapporteur_id+
+#                       judge1+judge2+judge3+n_applicants+controversial+
+#                       n_disputed_act +
+#                       n_concerned_act + n_concerned_cact + n_topics +
+#                        n_topicsc, sample1623_100)
+# 
+#  anova(reduced_model_outcome_100, full_model_outcome_100)
+# 
+# full_model_has_popular_name_100 <- lm(has_popular_name~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
+#                            judge1+judge2+judge3+n_applicants+controversial+
+#                            n_disputed_act +
+#                            n_concerned_act + n_concerned_cact + n_topics + 
+#                             n_topicsc, sample1623_100)
+# reduced_model_has_popular_name_100 <- lm(has_popular_name~year_decision+type_proceedings+importance+judge_rapporteur_id+
+#                               judge1+judge2+judge3+n_applicants+
+#                               n_disputed_act +controversial+
+#                               n_concerned_act + n_concerned_cact +  n_topics + 
+#                               n_topicsc, sample1623_100)
+# 
+# anova(reduced_model_has_popular_name_100, full_model_has_popular_name_100)
 
 
 # now estimating the chamber fixed effects for each outcome and each chamber
@@ -352,46 +352,46 @@ reduced_model_has_popular_name_50 <- lm(has_popular_name~year_decision+judge_rap
                                          , sample1623_50)
 
 anova(reduced_model_has_popular_name_50, full_model_has_popular_name_50)
-
-full_model_length_proceeding_50 <- lm(length_proceeding~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
-                                         judge1+judge2+judge3+n_applicants+controversial+
-                                         n_disputed_act +
-                                         n_concerned_act + n_concerned_cact + n_topics + 
-                                         n_topicsc, sample1623_50)
-reduced_model_length_proceeding_50 <- lm(length_proceeding~year_decision+type_proceedings+importance+judge_rapporteur_id+
-                                            judge1+judge2+judge3+n_applicants+controversial+
-                                            n_disputed_act +
-                                            n_concerned_act + n_concerned_cact +  n_topics + 
-                                            n_topicsc, sample1623_50)
-
-anova(reduced_model_length_proceeding_50, full_model_length_proceeding_50)
-
-
-full_model_outcome_50 <- lm(outcome~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
-                               judge1+judge2+judge3+n_applicants+controversial+
-                               n_disputed_act +
-                               n_concerned_act + n_concerned_cact  + n_topics +
-                               n_topicsc, sample1623_50)
-reduced_model_outcome_50 <- lm(outcome~year_decision+type_proceedings+importance+judge_rapporteur_id+
-                                  judge1+judge2+judge3+n_applicants+controversial+
-                                  n_disputed_act +
-                                  n_concerned_act + n_concerned_cact + n_topics +
-                                  n_topicsc, sample1623_50)
-
-anova(reduced_model_outcome_50, full_model_outcome_50)
-
-full_model_has_popular_name_50 <- lm(has_popular_name~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
-                                        judge1+judge2+judge3+n_applicants+controversial+
-                                        n_disputed_act +
-                                        n_concerned_act + n_concerned_cact + n_topics + 
-                                        n_topicsc, sample1623_50)
-reduced_model_has_popular_name_50 <- lm(has_popular_name~year_decision+type_proceedings+importance+judge_rapporteur_id+
-                                           judge1+judge2+judge3+n_applicants+
-                                           n_disputed_act +controversial+
-                                           n_concerned_act + n_concerned_cact +  n_topics + 
-                                           n_topicsc, sample1623_50)
-
-anova(reduced_model_has_popular_name_50, full_model_has_popular_name_50)
+# 
+# full_model_length_proceeding_50 <- lm(length_proceeding~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
+#                                          judge1+judge2+judge3+n_applicants+controversial+
+#                                          n_disputed_act +
+#                                          n_concerned_act + n_concerned_cact + n_topics + 
+#                                          n_topicsc, sample1623_50)
+# reduced_model_length_proceeding_50 <- lm(length_proceeding~year_decision+type_proceedings+importance+judge_rapporteur_id+
+#                                             judge1+judge2+judge3+n_applicants+controversial+
+#                                             n_disputed_act +
+#                                             n_concerned_act + n_concerned_cact +  n_topics + 
+#                                             n_topicsc, sample1623_50)
+# 
+# anova(reduced_model_length_proceeding_50, full_model_length_proceeding_50)
+# 
+# 
+# full_model_outcome_50 <- lm(outcome~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
+#                                judge1+judge2+judge3+n_applicants+controversial+
+#                                n_disputed_act +
+#                                n_concerned_act + n_concerned_cact  + n_topics +
+#                                n_topicsc, sample1623_50)
+# reduced_model_outcome_50 <- lm(outcome~year_decision+type_proceedings+importance+judge_rapporteur_id+
+#                                   judge1+judge2+judge3+n_applicants+controversial+
+#                                   n_disputed_act +
+#                                   n_concerned_act + n_concerned_cact + n_topics +
+#                                   n_topicsc, sample1623_50)
+# 
+# anova(reduced_model_outcome_50, full_model_outcome_50)
+# 
+# full_model_has_popular_name_50 <- lm(has_popular_name~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
+#                                         judge1+judge2+judge3+n_applicants+controversial+
+#                                         n_disputed_act +
+#                                         n_concerned_act + n_concerned_cact + n_topics + 
+#                                         n_topicsc, sample1623_50)
+# reduced_model_has_popular_name_50 <- lm(has_popular_name~year_decision+type_proceedings+importance+judge_rapporteur_id+
+#                                            judge1+judge2+judge3+n_applicants+
+#                                            n_disputed_act +controversial+
+#                                            n_concerned_act + n_concerned_cact +  n_topics + 
+#                                            n_topicsc, sample1623_50)
+# 
+# anova(reduced_model_has_popular_name_50, full_model_has_popular_name_50)
 
 
 # now estimating the chamber fixed effects for each outcome and each chamber
@@ -523,47 +523,47 @@ reduced_model_has_popular_name_20 <- lm(has_popular_name~year_decision+judge_rap
                                         , sample1623_20)
 
 anova(reduced_model_has_popular_name_20, full_model_has_popular_name_20)
-
-full_model_length_proceeding_20 <- lm(length_proceeding~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
-                                        judge1+judge2+judge3+n_applicants+controversial+
-                                        n_disputed_act +
-                                        n_concerned_act + n_concerned_cact + n_topics + 
-                                        n_topicsc, sample1623_20)
-reduced_model_length_proceeding_20 <- lm(length_proceeding~year_decision+type_proceedings+importance+judge_rapporteur_id+
-                                           judge1+judge2+judge3+n_applicants+controversial+
-                                           n_disputed_act +
-                                           n_concerned_act + n_concerned_cact +  n_topics + 
-                                           n_topicsc, sample1623_20)
-
-anova(reduced_model_length_proceeding_20, full_model_length_proceeding_20)
-
-
-full_model_outcome_20 <- lm(outcome~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
-                              judge1+judge2+judge3+n_applicants+controversial+
-                              n_disputed_act +
-                              n_concerned_act + n_concerned_cact  + n_topics +
-                              n_topicsc, sample1623_20)
-reduced_model_outcome_20 <- lm(outcome~year_decision+type_proceedings+importance+judge_rapporteur_id+
-                                 judge1+judge2+judge3+n_applicants+controversial+
-                                 n_disputed_act +
-                                 n_concerned_act + n_concerned_cact + n_topics +
-                                 n_topicsc, sample1623_20)
-
-anova(reduced_model_outcome_20, full_model_outcome_20)
-
-full_model_has_popular_name_20 <- lm(has_popular_name~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
-                                       judge1+judge2+judge3+n_applicants+controversial+
-                                       n_disputed_act +
-                                       n_concerned_act + n_concerned_cact + n_topics + 
-                                       n_topicsc, sample1623_20)
-reduced_model_has_popular_name_20 <- lm(has_popular_name~year_decision+type_proceedings+importance+judge_rapporteur_id+
-                                          judge1+judge2+judge3+n_applicants+
-                                          n_disputed_act +controversial+
-                                          n_concerned_act + n_concerned_cact +  n_topics + 
-                                          n_topicsc, sample1623_20)
-
-anova(reduced_model_has_popular_name_20, full_model_has_popular_name_20)
-
+# 
+# full_model_length_proceeding_20 <- lm(length_proceeding~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
+#                                         judge1+judge2+judge3+n_applicants+controversial+
+#                                         n_disputed_act +
+#                                         n_concerned_act + n_concerned_cact + n_topics + 
+#                                         n_topicsc, sample1623_20)
+# reduced_model_length_proceeding_20 <- lm(length_proceeding~year_decision+type_proceedings+importance+judge_rapporteur_id+
+#                                            judge1+judge2+judge3+n_applicants+controversial+
+#                                            n_disputed_act +
+#                                            n_concerned_act + n_concerned_cact +  n_topics + 
+#                                            n_topicsc, sample1623_20)
+# 
+# anova(reduced_model_length_proceeding_20, full_model_length_proceeding_20)
+# 
+# 
+# full_model_outcome_20 <- lm(outcome~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
+#                               judge1+judge2+judge3+n_applicants+controversial+
+#                               n_disputed_act +
+#                               n_concerned_act + n_concerned_cact  + n_topics +
+#                               n_topicsc, sample1623_20)
+# reduced_model_outcome_20 <- lm(outcome~year_decision+type_proceedings+importance+judge_rapporteur_id+
+#                                  judge1+judge2+judge3+n_applicants+controversial+
+#                                  n_disputed_act +
+#                                  n_concerned_act + n_concerned_cact + n_topics +
+#                                  n_topicsc, sample1623_20)
+# 
+# anova(reduced_model_outcome_20, full_model_outcome_20)
+# 
+# full_model_has_popular_name_20 <- lm(has_popular_name~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
+#                                        judge1+judge2+judge3+n_applicants+controversial+
+#                                        n_disputed_act +
+#                                        n_concerned_act + n_concerned_cact + n_topics + 
+#                                        n_topicsc, sample1623_20)
+# reduced_model_has_popular_name_20 <- lm(has_popular_name~year_decision+type_proceedings+importance+judge_rapporteur_id+
+#                                           judge1+judge2+judge3+n_applicants+
+#                                           n_disputed_act +controversial+
+#                                           n_concerned_act + n_concerned_cact +  n_topics + 
+#                                           n_topicsc, sample1623_20)
+# 
+# anova(reduced_model_has_popular_name_20, full_model_has_popular_name_20)
+# 
 
 # now estimating the chamber fixed effects for each outcome and each chamber
 coefficients <- coef(full_model_length_proceeding_20)
