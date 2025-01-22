@@ -37,6 +37,7 @@ data_basic <- ccc_metadata %>%
   filter(formation!="Plenum") %>% # filter away plenary decisions
   rowwise() %>%
   mutate(
+   case_id=str_replace_all(case_id," ",""),
     chamber_id = paste(
       sort(composition$judge_id[1:3]), # Extract the first three `judge_id`s
       collapse = ""
@@ -80,23 +81,16 @@ data_basic <- ccc_metadata %>%
 
 case_citations_count <- ccc_metadata %>%
   unnest(citations) %>%
-  group_by(citations, doc_id) %>%
+  group_by(citations) %>%
   summarise(cited=n()) %>%
   rename(case_id=citations) %>%
-  mutate(case_id=str_replace(case_id,"\n","")) %>%
-   left_join(
-    ccc_metadata %>%
-      select(doc_id, case_id) %>%
-      mutate(last_char = as.numeric(str_sub(doc_id, -1))) %>%
-      group_by(case_id) %>%
-      filter(last_char == max(last_char)) %>%
-      select(-last_char)
-  )
+  mutate(case_id=str_replace_all(case_id," ","")) 
 
-data_basic <- data_basic %>% left_join(case_citations_count)
+data_basic <- data_basic %>% left_join(case_citations_count, by =join_by(case_id))
 
 data_basic <- data_basic %>% mutate(cited=case_when(!is.na(cited) ~ cited,
-                                                    TRUE ~ 0))
+                                                    TRUE ~ 0)) %>%
+  mutate(cited_per_year=cited/time_length(difftime("2025-01-01", date_decision), "years"))
 
 judges <- ccc_judges %>% group_by(judge_id) %>%
 summarise(judge_term_start=min(ymd(judge_term_start)),
