@@ -5,6 +5,9 @@ library(readr)
 library(lubridate)
 library(stargazer)
 library(tidyr)
+library(sandwich)
+library(lmtest)
+library(clubSandwich)
 library(stringr)
 library(tidyverse)
 library(purrr)
@@ -135,51 +138,27 @@ sample1623CE_100<- sample1623CE_100 %>% mutate(average_yob=(judge_yob+judge_yob+
   mutate(gender=  factor(gender, levels = c("MMM", "MMF", "MFF")) ) %>%
   ungroup() 
 
-length_proceeding_100 <- lm(FE_lp~ year_decision+average_yob+ var_yob +background+uni+gender, sample1623CE_100)
-summary(length_proceeding_100)
+length_proceeding_100 <- lm(FE_lp~ average_yob+ var_yob +background+uni+gender, sample1623CE_100)
 
-outcome_100 <- lm(FE_o ~  year_decision+average_yob+ var_yob +background+uni+gender,  sample1623CE_100)
-summary(outcome_100)
+outcome_100 <- lm(FE_o ~  average_yob+ var_yob +background+uni+gender,  sample1623CE_100)
 
-has_popular_name_100 <- lm(FE_hpn~  year_decision+average_yob+ var_yob +background+uni+gender,  sample1623CE_100)
-summary(has_popular_name_100)
+has_popular_name_100 <- lm(FE_hpn~  average_yob+ var_yob +background+uni+gender,  sample1623CE_100)
 
-length_proceeding_C_100 <- lm(length_proceeding~     year_decision+n_applicants+
+length_proceeding_C_100 <- lm(FE_lp~     n_applicants+
                                 n_disputed_act +controversial+
                                 n_concerned_act + n_concerned_cact + n_topics + 
                                 + average_yob+ var_yob +background+uni+gender, sample1623CE_100)
 summary(length_proceeding_C_100)
 
-outcome_C_100 <- lm(outcome~ year_decision+n_applicants+
+outcome_C_100 <- lm(FE_o~ n_applicants+
                       n_disputed_act +controversial+
                       n_concerned_act + n_concerned_cact + n_topics + 
                       + average_yob+ var_yob +background+uni+gender, sample1623CE_100)
-summary(outcome_C_100)
 
-has_popular_name_C_100 <- lm(has_popular_name~ year_decision+n_applicants+
+has_popular_name_C_100 <- lm(FE_hpn~ n_applicants+
                                n_disputed_act +controversial+
                                n_concerned_act + n_concerned_cact + n_topics + 
                                + average_yob+ var_yob +background+uni+gender,  sample1623CE_100)
-summary(has_popular_name_C_100)
-
-length_proceeding_CF_100 <- lm(length_proceeding~  year_decision+   n_applicants+judge_rapporteur_id+
-                                 n_disputed_act +controversial+
-                                 n_concerned_act + n_concerned_cact + n_topics + 
-                                 + average_yob+ var_yob +background+uni+gender, sample1623CE_100)
-summary(length_proceeding_CF_100)
-
-
-outcome_CF_100 <- lm(outcome~ year_decision+n_applicants+judge_rapporteur_id+
-                       n_disputed_act +controversial+
-                       n_concerned_act + n_concerned_cact + n_topics + 
-                       + average_yob+ var_yob +background+uni+gender,  sample1623CE_100)
-summary(outcome_CF_100)
-
-has_popular_name_CF_100 <- lm(has_popular_name~ year_decision+n_applicants+judge_rapporteur_id+
-                                n_disputed_act +controversial+
-                                n_concerned_act + n_concerned_cact + n_topics + 
-                                + average_yob+ var_yob +background+uni+gender, sample1623CE_100)
-summary(has_popular_name_CF_100)
 
 
 sample1623_50 <- sample1623 %>%
@@ -188,37 +167,37 @@ sample1623_50 <- sample1623 %>%
   ungroup()  
 n_chambers <- sample1623_50 %>% summarise(n_distinct(chamber_id))
 
-full_model_length_proceeding_50 <- lm(length_proceeding~chamber_id+year_decision+judge_rapporteur_id+
+full_model_length_proceeding_50 <- lm(length_proceeding~chamber_id+judge_rapporteur_id+
                                         judge1+judge2+judge3
                                       , sample1623_50)
-reduced_model_length_proceeding_50 <- lm(length_proceeding~year_decision+judge_rapporteur_id+
+reduced_model_length_proceeding_50 <- lm(length_proceeding~judge_rapporteur_id+
                                            judge1+judge2+judge3, sample1623_50)
 
 anova(reduced_model_length_proceeding_50, full_model_length_proceeding_50)
 
-full_model_outcome_50 <- lm(outcome~chamber_id+year_decision+judge_rapporteur_id+
+full_model_outcome_50 <- lm(outcome~chamber_id+judge_rapporteur_id+
                               judge1+judge2+judge3
                             , data=sample1623_50)
-reduced_model_outcome_50 <- lm(outcome~year_decision+judge_rapporteur_id+
+reduced_model_outcome_50 <- lm(outcome~judge_rapporteur_id+
                                  judge1+judge2+judge3, sample1623_50)
 
 anova(reduced_model_outcome_50, full_model_outcome_50)
 
-full_model_has_popular_name_50 <- lm(has_popular_name~chamber_id+year_decision+judge_rapporteur_id+
+full_model_has_popular_name_50 <- lm(has_popular_name~chamber_id+judge_rapporteur_id+
                                        judge1+judge2+judge3
                                      , sample1623_50)
-reduced_model_has_popular_name_50 <- lm(has_popular_name~year_decision+judge_rapporteur_id+
+reduced_model_has_popular_name_50 <- lm(has_popular_name~judge_rapporteur_id+
                                           judge1+judge2+judge3
                                         , sample1623_50)
 
 anova(reduced_model_has_popular_name_50, full_model_has_popular_name_50)
 # 
-# full_model_length_proceeding_50 <- lm(length_proceeding~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
+# full_model_length_proceeding_50 <- lm(length_proceeding~chamber_id+type_proceedings+importance+judge_rapporteur_id+
 #                                          judge1+judge2+judge3+n_applicants+controversial+
 #                                          n_disputed_act +
 #                                          n_concerned_act + n_concerned_cact + n_topics + 
 #                                          n_topicsc, sample1623_50)
-# reduced_model_length_proceeding_50 <- lm(length_proceeding~year_decision+type_proceedings+importance+judge_rapporteur_id+
+# reduced_model_length_proceeding_50 <- lm(length_proceeding~type_proceedings+importance+judge_rapporteur_id+
 #                                             judge1+judge2+judge3+n_applicants+controversial+
 #                                             n_disputed_act +
 #                                             n_concerned_act + n_concerned_cact +  n_topics + 
@@ -227,12 +206,12 @@ anova(reduced_model_has_popular_name_50, full_model_has_popular_name_50)
 # anova(reduced_model_length_proceeding_50, full_model_length_proceeding_50)
 # 
 # 
-# full_model_outcome_50 <- lm(outcome~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
+# full_model_outcome_50 <- lm(outcome~chamber_id+type_proceedings+importance+judge_rapporteur_id+
 #                                judge1+judge2+judge3+n_applicants+controversial+
 #                                n_disputed_act +
 #                                n_concerned_act + n_concerned_cact  + n_topics +
 #                                n_topicsc, sample1623_50)
-# reduced_model_outcome_50 <- lm(outcome~year_decision+type_proceedings+importance+judge_rapporteur_id+
+# reduced_model_outcome_50 <- lm(outcome~type_proceedings+importance+judge_rapporteur_id+
 #                                   judge1+judge2+judge3+n_applicants+controversial+
 #                                   n_disputed_act +
 #                                   n_concerned_act + n_concerned_cact + n_topics +
@@ -240,12 +219,12 @@ anova(reduced_model_has_popular_name_50, full_model_has_popular_name_50)
 # 
 # anova(reduced_model_outcome_50, full_model_outcome_50)
 # 
-# full_model_has_popular_name_50 <- lm(has_popular_name~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
+# full_model_has_popular_name_50 <- lm(has_popular_name~chamber_id+type_proceedings+importance+judge_rapporteur_id+
 #                                         judge1+judge2+judge3+n_applicants+controversial+
 #                                         n_disputed_act +
 #                                         n_concerned_act + n_concerned_cact + n_topics + 
 #                                         n_topicsc, sample1623_50)
-# reduced_model_has_popular_name_50 <- lm(has_popular_name~year_decision+type_proceedings+importance+judge_rapporteur_id+
+# reduced_model_has_popular_name_50 <- lm(has_popular_name~type_proceedings+importance+judge_rapporteur_id+
 #                                            judge1+judge2+judge3+n_applicants+
 #                                            n_disputed_act +controversial+
 #                                            n_concerned_act + n_concerned_cact +  n_topics + 
@@ -304,52 +283,26 @@ sample1623CE_50<- sample1623CE_50 %>% mutate(average_yob=(judge_yob+judge_yob+ju
   mutate(gender=  factor(gender, levels = c("MMM", "MMF", "MFF")) ) %>%
   ungroup()
 
-length_proceeding_50 <- lm(FE_lp~ year_decision+average_yob+ var_yob +background+uni+gender, sample1623CE_50)
-summary(length_proceeding_50)
+length_proceeding_50 <- lm(FE_lp~ average_yob+ var_yob +background+uni+gender, sample1623CE_50)
 
-outcome_50 <- lm(FE_o ~  year_decision+average_yob+ var_yob +background+uni+gender,  sample1623CE_50)
-summary(outcome_50)
+outcome_50 <- lm(FE_o ~  average_yob+ var_yob +background+uni+gender,  sample1623CE_50)
 
-has_popular_name_50 <- lm(FE_hpn~  year_decision+average_yob+ var_yob +background+uni+gender,  sample1623CE_50)
-summary(has_popular_name_50)
+has_popular_name_50 <- lm(FE_hpn~  average_yob+ var_yob +background+uni+gender,  sample1623CE_50)
 
-length_proceeding_C_50 <- lm(length_proceeding~     year_decision+n_applicants+
+length_proceeding_C_50 <- lm(FE_lp~     n_applicants+
                                n_disputed_act +controversial+
                                n_concerned_act + n_concerned_cact + n_topics + 
                                + average_yob+ var_yob +background+uni+gender, sample1623CE_50)
-summary(length_proceeding_C_50)
 
-outcome_C_50 <- lm(outcome~ year_decision+n_applicants+
+outcome_C_50 <- lm(FE_o~ n_applicants+
                      n_disputed_act +controversial+
                      n_concerned_act + n_concerned_cact + n_topics + 
                      + average_yob+ var_yob +background+uni+gender, sample1623CE_50)
-summary(outcome_C_50)
 
-has_popular_name_C_50 <- lm(has_popular_name~ year_decision+n_applicants+
+has_popular_name_C_50 <- lm(FE_hpn~ n_applicants+
                               n_disputed_act +controversial+
                               n_concerned_act + n_concerned_cact + n_topics + 
                               + average_yob+ var_yob +background+uni+gender,  sample1623CE_50)
-summary(has_popular_name_C_50)
-
-length_proceeding_CF_50 <- lm(length_proceeding~  year_decision+   n_applicants+judge_rapporteur_id+
-                                n_disputed_act +controversial+
-                                n_concerned_act + n_concerned_cact + n_topics + 
-                                + average_yob+ var_yob +background+uni+gender, sample1623CE_50)
-summary(length_proceeding_CF_50)
-
-
-outcome_CF_50 <- lm(outcome~ year_decision+n_applicants+judge_rapporteur_id+
-                      n_disputed_act +controversial+
-                      n_concerned_act + n_concerned_cact + n_topics + 
-                      + average_yob+ var_yob +background+uni+gender,  sample1623CE_50)
-summary(outcome_CF_50)
-
-has_popular_name_CF_50 <- lm(has_popular_name~ year_decision+n_applicants+judge_rapporteur_id+
-                               n_disputed_act +controversial+
-                               n_concerned_act + n_concerned_cact + n_topics + 
-                               + average_yob+ var_yob +background+uni+gender, sample1623CE_50)
-summary(has_popular_name_CF_50)
-
 
 
 
@@ -359,37 +312,37 @@ sample1623_20 <- sample1623 %>%
   ungroup()  
 n_chambers <- sample1623_20 %>% summarise(n_distinct(chamber_id))
 
-full_model_length_proceeding_20 <- lm(length_proceeding~chamber_id+year_decision+judge_rapporteur_id+
+full_model_length_proceeding_20 <- lm(length_proceeding~chamber_id+judge_rapporteur_id+
                                         judge1+judge2+judge3
                                       , sample1623_20)
-reduced_model_length_proceeding_20 <- lm(length_proceeding~year_decision+judge_rapporteur_id+
+reduced_model_length_proceeding_20 <- lm(length_proceeding~judge_rapporteur_id+
                                            judge1+judge2+judge3, sample1623_20)
 
 anova(reduced_model_length_proceeding_20, full_model_length_proceeding_20)
 
-full_model_outcome_20 <- lm(outcome~chamber_id+year_decision+judge_rapporteur_id+
+full_model_outcome_20 <- lm(outcome~chamber_id+judge_rapporteur_id+
                               judge1+judge2+judge3
                             , data=sample1623_20)
-reduced_model_outcome_20 <- lm(outcome~year_decision+judge_rapporteur_id+
+reduced_model_outcome_20 <- lm(outcome~judge_rapporteur_id+
                                  judge1+judge2+judge3, sample1623_20)
 
 anova(reduced_model_outcome_20, full_model_outcome_20)
 
-full_model_has_popular_name_20 <- lm(has_popular_name~chamber_id+year_decision+judge_rapporteur_id+
+full_model_has_popular_name_20 <- lm(has_popular_name~chamber_id+judge_rapporteur_id+
                                        judge1+judge2+judge3
                                      , sample1623_20)
-reduced_model_has_popular_name_20 <- lm(has_popular_name~year_decision+judge_rapporteur_id+
+reduced_model_has_popular_name_20 <- lm(has_popular_name~judge_rapporteur_id+
                                           judge1+judge2+judge3
                                         , sample1623_20)
 
 anova(reduced_model_has_popular_name_20, full_model_has_popular_name_20)
 # 
-# full_model_length_proceeding_20 <- lm(length_proceeding~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
+# full_model_length_proceeding_20 <- lm(length_proceeding~chamber_id+type_proceedings+importance+judge_rapporteur_id+
 #                                         judge1+judge2+judge3+n_applicants+controversial+
 #                                         n_disputed_act +
 #                                         n_concerned_act + n_concerned_cact + n_topics + 
 #                                         n_topicsc, sample1623_20)
-# reduced_model_length_proceeding_20 <- lm(length_proceeding~year_decision+type_proceedings+importance+judge_rapporteur_id+
+# reduced_model_length_proceeding_20 <- lm(length_proceeding~type_proceedings+importance+judge_rapporteur_id+
 #                                            judge1+judge2+judge3+n_applicants+controversial+
 #                                            n_disputed_act +
 #                                            n_concerned_act + n_concerned_cact +  n_topics + 
@@ -398,12 +351,12 @@ anova(reduced_model_has_popular_name_20, full_model_has_popular_name_20)
 # anova(reduced_model_length_proceeding_20, full_model_length_proceeding_20)
 # 
 # 
-# full_model_outcome_20 <- lm(outcome~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
+# full_model_outcome_20 <- lm(outcome~chamber_id+type_proceedings+importance+judge_rapporteur_id+
 #                               judge1+judge2+judge3+n_applicants+controversial+
 #                               n_disputed_act +
 #                               n_concerned_act + n_concerned_cact  + n_topics +
 #                               n_topicsc, sample1623_20)
-# reduced_model_outcome_20 <- lm(outcome~year_decision+type_proceedings+importance+judge_rapporteur_id+
+# reduced_model_outcome_20 <- lm(outcome~type_proceedings+importance+judge_rapporteur_id+
 #                                  judge1+judge2+judge3+n_applicants+controversial+
 #                                  n_disputed_act +
 #                                  n_concerned_act + n_concerned_cact + n_topics +
@@ -411,12 +364,12 @@ anova(reduced_model_has_popular_name_20, full_model_has_popular_name_20)
 # 
 # anova(reduced_model_outcome_20, full_model_outcome_20)
 # 
-# full_model_has_popular_name_20 <- lm(has_popular_name~chamber_id+year_decision+type_proceedings+importance+judge_rapporteur_id+
+# full_model_has_popular_name_20 <- lm(has_popular_name~chamber_id+type_proceedings+importance+judge_rapporteur_id+
 #                                        judge1+judge2+judge3+n_applicants+controversial+
 #                                        n_disputed_act +
 #                                        n_concerned_act + n_concerned_cact + n_topics + 
 #                                        n_topicsc, sample1623_20)
-# reduced_model_has_popular_name_20 <- lm(has_popular_name~year_decision+type_proceedings+importance+judge_rapporteur_id+
+# reduced_model_has_popular_name_20 <- lm(has_popular_name~type_proceedings+importance+judge_rapporteur_id+
 #                                           judge1+judge2+judge3+n_applicants+
 #                                           n_disputed_act +controversial+
 #                                           n_concerned_act + n_concerned_cact +  n_topics + 
@@ -475,66 +428,62 @@ sample1623CE_20<- sample1623CE_20 %>% mutate(average_yob=(judge_yob+judge_yob+ju
   mutate(gender=  factor(gender, levels = c("MMM", "MMF", "MFF")) ) %>%
   ungroup()
 
-length_proceeding_20 <- lm(FE_lp~ year_decision+average_yob+ var_yob +background+uni+gender, sample1623CE_20)
-summary(length_proceeding_20)
+length_proceeding_20 <- lm(FE_lp~ average_yob+ var_yob +background+uni+gender, sample1623CE_20)
 
-outcome_20 <- lm(FE_o ~  year_decision+average_yob+ var_yob +background+uni+gender,  sample1623CE_20)
-summary(outcome_20)
+outcome_20 <- lm(FE_o ~  average_yob+ var_yob +background+uni+gender,  sample1623CE_20)
 
-has_popular_name_20 <- lm(FE_hpn~  year_decision+average_yob+ var_yob +background+uni+gender,  sample1623CE_20)
-summary(has_popular_name_20)
+has_popular_name_20 <- lm(FE_hpn~  average_yob+ var_yob +background+uni+gender,  sample1623CE_20)
 
-length_proceeding_C_20 <- lm(length_proceeding~     year_decision+n_applicants+
+length_proceeding_C_20 <- lm(FE_lp~     n_applicants+
                                n_disputed_act +controversial+
                                n_concerned_act + n_concerned_cact + n_topics + 
                                + average_yob+ var_yob +background+uni+gender, sample1623CE_20)
-summary(length_proceeding_C_20)
 
-outcome_C_20 <- lm(outcome~ year_decision+n_applicants+
+outcome_C_20 <- lm(FE_o~ n_applicants+
                      n_disputed_act +controversial+
                      n_concerned_act + n_concerned_cact + n_topics + 
                      + average_yob+ var_yob +background+uni+gender, sample1623CE_20)
-summary(outcome_C_20)
 
-has_popular_name_C_20 <- lm(has_popular_name~ year_decision+n_applicants+
+has_popular_name_C_20 <- lm(FE_hpn~ n_applicants+
                               n_disputed_act +controversial+
                               n_concerned_act + n_concerned_cact + n_topics + 
                               + average_yob+ var_yob +background+uni+gender,  sample1623CE_20)
-summary(has_popular_name_C_20)
 
-length_proceeding_CF_20 <- lm(length_proceeding~  year_decision+   n_applicants+judge_rapporteur_id+
-                                n_disputed_act +controversial+
-                                n_concerned_act + n_concerned_cact + n_topics + 
-                                + average_yob+ var_yob +background+uni+gender, sample1623CE_20)
-summary(length_proceeding_CF_20)
+clustered_se_100 <- vcovCL(length_proceeding_100, cluster = ~ chamber_id)
+clustered_se_C_100 <- vcovCL(length_proceeding_C_100, cluster = ~ chamber_id)
+clustered_se_50 <- vcovCL(length_proceeding_50, cluster = ~ chamber_id)
+clustered_se_C_50 <- vcovCL(length_proceeding_C_50, cluster = ~ chamber_id)
+clustered_se_20 <- vcovCL(length_proceeding_20, cluster = ~ chamber_id)
+clustered_se_C_20 <- vcovCL(length_proceeding_C_20, cluster = ~ chamber_id)
 
+# Repeat for the other models
+clustered_se_outcome_100 <- vcovCL(outcome_100, cluster = ~ chamber_id)
+clustered_se_outcome_C_100 <- vcovCL(outcome_C_100, cluster = ~ chamber_id)
+clustered_se_outcome_50 <- vcovCL(outcome_50, cluster = ~ chamber_id)
+clustered_se_outcome_C_50 <- vcovCL(outcome_C_50, cluster = ~ chamber_id)
+clustered_se_outcome_20 <- vcovCL(outcome_20, cluster = ~ chamber_id)
+clustered_se_outcome_C_20 <- vcovCL(outcome_C_20, cluster = ~ chamber_id)
 
-outcome_CF_20 <- lm(outcome~ year_decision+n_applicants+judge_rapporteur_id+
-                      n_disputed_act +controversial+
-                      n_concerned_act + n_concerned_cact + n_topics + 
-                      + average_yob+ var_yob +background+uni+gender,  sample1623CE_20)
-summary(outcome_CF_20)
+clustered_se_hpn_100 <- vcovCL(has_popular_name_100, cluster = ~ chamber_id)
+clustered_se_hpn_C_100 <- vcovCL(has_popular_name_C_100, cluster = ~ chamber_id)
+clustered_se_hpn_50 <- vcovCL(has_popular_name_50, cluster = ~ chamber_id)
+clustered_se_hpn_C_50 <- vcovCL(has_popular_name_C_50, cluster = ~ chamber_id)
+clustered_se_hpn_20 <- vcovCL(has_popular_name_20, cluster = ~ chamber_id)
+clustered_se_hpn_C_20 <- vcovCL(has_popular_name_C_20, cluster = ~ chamber_id)
 
-has_popular_name_CF_20 <- lm(has_popular_name~ year_decision+n_applicants+judge_rapporteur_id+
-                               n_disputed_act +controversial+
-                               n_concerned_act + n_concerned_cact + n_topics + 
-                               + average_yob+ var_yob +background+uni+gender, sample1623CE_20)
-summary(has_popular_name_CF_20)
+stargazer(length_proceeding_100, length_proceeding_C_100, length_proceeding_50, length_proceeding_C_50, length_proceeding_20, length_proceeding_C_20,
+          se = list(sqrt(diag(clustered_se_100)), sqrt(diag(clustered_se_C_100)), sqrt(diag(clustered_se_50)), sqrt(diag(clustered_se_C_50)), 
+                    sqrt(diag(clustered_se_20)), sqrt(diag(clustered_se_C_20))),
+          omit = c("^year", "^judge", "^n", "controversial", "Constant"))
 
+# Outcome Models
+stargazer(outcome_100, outcome_C_100, outcome_50, outcome_C_50, outcome_20, outcome_C_20,
+          se = list(sqrt(diag(clustered_se_outcome_100)), sqrt(diag(clustered_se_outcome_C_100)), sqrt(diag(clustered_se_outcome_50)), 
+                    sqrt(diag(clustered_se_outcome_C_50)), sqrt(diag(clustered_se_outcome_20)), sqrt(diag(clustered_se_outcome_C_20))),
+          omit = c("^year", "^judge", "^n", "controversial", "Constant"))
 
-
-
-stargazer(length_proceeding_100,length_proceeding_C_100,
-          length_proceeding_50, length_proceeding_C_50,
-          length_proceeding_20, length_proceeding_C_20,omit=c(
-            "^year","^judge", "^n", "controversial", "Constant"))
-
-stargazer(outcome_100,outcome_C_100,
-          outcome_50, outcome_C_50,
-          outcome_20, outcome_C_20,omit=c(
-            "^year","^judge", "^n", "controversial", "Constant"))
-
-stargazer(has_popular_name_100,has_popular_name_C_100,
-          has_popular_name_50, has_popular_name_C_50,
-          has_popular_name_20, has_popular_name_C_20,omit=c(
-            "^year","^judge", "^n", "controversial", "Constant")) 
+# Has Popular Name Models
+stargazer(has_popular_name_100, has_popular_name_C_100, has_popular_name_50, has_popular_name_C_50, has_popular_name_20, has_popular_name_C_20,
+          se = list(sqrt(diag(clustered_se_hpn_100)), sqrt(diag(clustered_se_hpn_C_100)), sqrt(diag(clustered_se_hpn_50)), 
+                    sqrt(diag(clustered_se_hpn_C_50)), sqrt(diag(clustered_se_hpn_20)), sqrt(diag(clustered_se_hpn_C_20))),
+          omit = c("^year", "^judge", "^n", "controversial", "Constant"))

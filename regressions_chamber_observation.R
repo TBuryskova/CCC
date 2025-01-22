@@ -152,19 +152,19 @@ summary(outcome_100)
 has_popular_name_100 <- lm(FE_hpn~  average_yob+ var_yob +background+uni+gender,  sample1623CE_100)
 summary(has_popular_name_100)
 
-length_proceeding_C_100 <- lm(length_proceeding~    n_applicants+
+length_proceeding_C_100 <- lm(FE_lp~    n_applicants+
                                 n_disputed_act +controversial+
                                 n_concerned_act + n_concerned_cact + 
                                 + average_yob+ var_yob +background+uni+gender, sample1623CE_100)
 summary(length_proceeding_C_100)
 
-outcome_C_100 <- lm(outcome~ n_applicants+
+outcome_C_100 <- lm(FE_o~ n_applicants+
                       n_disputed_act +controversial+
                       n_concerned_act + n_concerned_cact +  
                       + average_yob+ var_yob +background+uni+gender, sample1623CE_100)
 summary(outcome_C_100)
 
-has_popular_name_C_100 <- lm(has_popular_name~ n_applicants+
+has_popular_name_C_100 <- lm(FE_hpn~ n_applicants+
                                n_disputed_act +controversial+
                                n_concerned_act + n_concerned_cact +  
                                + average_yob+ var_yob +background+uni+gender,  sample1623CE_100)
@@ -310,19 +310,19 @@ summary(outcome_50)
 has_popular_name_50 <- lm(FE_hpn~  average_yob+ var_yob +background+uni+gender,  sample1623CE_50)
 summary(has_popular_name_50)
 
-length_proceeding_C_50 <- lm(length_proceeding~     n_applicants+
+length_proceeding_C_50 <- lm(FE_lp~     n_applicants+
                                n_disputed_act +controversial+
                                n_concerned_act + n_concerned_cact +  
                                + average_yob+ var_yob +background+uni+gender, sample1623CE_50)
 summary(length_proceeding_C_50)
 
-outcome_C_50 <- lm(outcome~ n_applicants+
+outcome_C_50 <- lm(FE_o~ n_applicants+
                      n_disputed_act +controversial+
                      n_concerned_act + n_concerned_cact +  
                      + average_yob+ var_yob +background+uni+gender, sample1623CE_50)
 summary(outcome_C_50)
 
-has_popular_name_C_50 <- lm(has_popular_name~ n_applicants+
+has_popular_name_C_50 <- lm(FE_hpn~ n_applicants+
                               n_disputed_act +controversial+
                               n_concerned_act + n_concerned_cact +  
                               + average_yob+ var_yob +background+uni+gender,  sample1623CE_50)
@@ -468,19 +468,19 @@ summary(outcome_20)
 has_popular_name_20 <- lm(FE_hpn~  average_yob+ var_yob +background+uni+gender,  sample1623CE_20)
 summary(has_popular_name_20)
 
-length_proceeding_C_20 <- lm(length_proceeding~     n_applicants+
+length_proceeding_C_20 <- lm(FE_lp~     n_applicants+
                                n_disputed_act +controversial+
                                n_concerned_act + n_concerned_cact +  
                                + average_yob+ var_yob +background+uni+gender, sample1623CE_20)
 summary(length_proceeding_C_20)
 
-outcome_C_20 <- lm(outcome~n_applicants+
+outcome_C_20 <- lm(FE_o~n_applicants+
                      n_disputed_act +controversial+
                      n_concerned_act + n_concerned_cact +  
                      + average_yob+ var_yob +background+uni+gender, sample1623CE_20)
 summary(outcome_C_20)
 
-has_popular_name_C_20 <- lm(has_popular_name~ n_applicants+
+has_popular_name_C_20 <- lm(FE_hpn~ n_applicants+
                               n_disputed_act +controversial+
                               n_concerned_act + n_concerned_cact +  
                               + average_yob+ var_yob +background+uni+gender,  sample1623CE_20)
