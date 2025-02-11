@@ -18,6 +18,8 @@ ccc_separate_opinions <- read_rds("../data/rds/ccc_separate_opinions.rds")
 ccc_subject_matter <- read_rds("../data/rds/ccc_subject_matter.rds")
 ccc_verdicts <- read_rds("../data/rds/ccc_verdicts.rds")
 ccc_metadata <- read_rds("../data/rds/ccc_metadata.rds")
+ccc_clerks<- read_rds("../data/rds/ccc_clerks.rds")
+
 
 controversial_topics <- c(
   "diskriminace",
@@ -135,6 +137,7 @@ sample1623 <- data_basic %>% filter(ymd(date_submission)>=ymd("2016-01-01"),
                                str_sub(as.character(judge_gender3), 1, 1)), decreasing = TRUE), 
                         collapse = ""),
          distinct_backgrounds=length(unique(c(judge_profession, judge_profession2, judge_profession3))),
+         scholar=(judge_profession=="scholar"| judge_profession2=="scholar"| judge_profession3=="scholar"),
          distinct_uni=length(unique(c(judge_uni, judge_uni2, judge_uni3)))
   ) %>%
   mutate(gender=  factor(gender, levels = c("MMM", "MMF", "MFF")) ) %>%
