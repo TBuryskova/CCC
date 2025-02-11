@@ -135,6 +135,7 @@ sample1623 <- data_basic %>% filter(ymd(date_submission)>=ymd("2016-01-01"),
                                str_sub(as.character(judge_gender3), 1, 1)), decreasing = TRUE), 
                         collapse = ""),
          distinct_backgrounds=length(unique(c(judge_profession, judge_profession2, judge_profession3))),
+         scholar=(judge_profession=="scholar"| judge_profession2=="scholar"| judge_profession3=="scholar"),
          distinct_uni=length(unique(c(judge_uni, judge_uni2, judge_uni3)))
   ) %>%
   mutate(gender=  factor(gender, levels = c("MMM", "MMF", "MFF")) ) %>%
