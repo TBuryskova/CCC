@@ -76,7 +76,7 @@ data_basic <- ccc_metadata %>%
   mutate(         has_popular_name=!is.na(popular_name)) %>%
   mutate(outcome=(outcome=="granted")) %>%
   mutate(length_proceeding=case_when(length_proceeding<0 ~ NA,
-                                     TRUE~length_proceeding))
+                                     TRUE~length_proceeding)) 
 
 case_citations_count <- ccc_metadata %>%
   unnest(citations) %>%
@@ -124,7 +124,32 @@ sample1623 <- data_basic %>% filter(ymd(date_submission)>=ymd("2016-01-01"),
   judge_age2 =  year(ymd(date_submission))-judge_yob2,
   judge_age3 =  year(ymd(date_submission))-judge_yob3,
 
-         )
+         ) %>%
+  mutate(average_yob=(judge_yob+judge_yob+judge_yob3)/3,
+         var_yob=(judge_yob^2+judge_yob2^2+judge_yob3^2)/3-(judge_yob+judge_yob2+judge_yob3)^2/9) %>%
+  rowwise() %>%
+  mutate(background = str_c(sort(c(str_sub(judge_profession, 1, 1), 
+                                   str_sub(judge_profession2, 1, 1), 
+                                   str_sub(judge_profession3, 1, 1))), 
+                            collapse = ""),
+         uni = str_c(sort(c(str_sub(as.character(judge_uni), 1, 1), 
+                            str_sub(as.character(judge_uni2), 1, 1), 
+                            str_sub(as.character(judge_uni3), 1, 1))), 
+                     collapse = ""),
+         gender = str_c(sort(c(str_sub(as.character(judge_gender), 1, 1), 
+                               str_sub(as.character(judge_gender2), 1, 1), 
+                               str_sub(as.character(judge_gender3), 1, 1)), decreasing = TRUE), 
+                        collapse = ""),
+         distinct_backgrounds=length(unique(c(judge_profession, judge_profession2, judge_profession3))),
+         distinct_uni=length(unique(c(judge_uni, judge_uni2, judge_uni3)))
+         ) %>%
+  mutate(gender=  factor(gender, levels = c("MMM", "MMF", "MFF")) ) %>%
+  ungroup() %>%
+  mutate(same_background=(distinct_backgrounds==1),
+         all_different_background=(distinct_backgrounds==3),
+         same_uni=(distinct_uni==1),
+         all_different_uni=(distinct_uni==3)
+  )
   
 
 sample1623 <- sample1623 %>% filter(official1623==FALSE,
@@ -257,68 +282,51 @@ sample1623CE_100 <- left_join(sample1623CE_100,chamber_effects_hpn, by="chamber_
 
 
 # Regressing the chamber fixed effect on the characteristics of the chamber
-sample1623CE_100<- sample1623CE_100 %>% mutate(average_yob=(judge_yob+judge_yob+judge_yob3)/3,
-                                  var_yob=(judge_yob^2+judge_yob2^2+judge_yob3^2)/3-(judge_yob+judge_yob2+judge_yob3)^2/9) %>%
-  rowwise() %>%
-  mutate(background = str_c(sort(c(str_sub(judge_profession, 1, 1), 
-                                   str_sub(judge_profession2, 1, 1), 
-                                   str_sub(judge_profession3, 1, 1))), 
-                            collapse = ""),
-         uni = str_c(sort(c(str_sub(as.character(judge_uni), 1, 1), 
-                                   str_sub(as.character(judge_uni2), 1, 1), 
-                                   str_sub(as.character(judge_uni3), 1, 1))), 
-                            collapse = ""),
-         gender = str_c(sort(c(str_sub(as.character(judge_gender), 1, 1), 
-                            str_sub(as.character(judge_gender2), 1, 1), 
-                            str_sub(as.character(judge_gender3), 1, 1)), decreasing = TRUE), 
-                     collapse = "")) %>%
-  mutate(gender=  factor(gender, levels = c("MMM", "MMF", "MFF")) ) %>%
-  ungroup()
 
-length_proceeding_100 <- lm(FE_lp~ year_decision+average_yob+ var_yob +background+uni+gender, sample1623CE_100)
+length_proceeding_100 <- lm(FE_lp~ year_decision+average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender, sample1623CE_100)
 summary(length_proceeding_100)
 
-outcome_100 <- lm(FE_o ~  year_decision+average_yob+ var_yob +background+uni+gender,  sample1623CE_100)
+outcome_100 <- lm(FE_o ~  year_decision+average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender,  sample1623CE_100)
 summary(outcome_100)
 
-has_popular_name_100 <- lm(FE_hpn~  year_decision+average_yob+ var_yob +background+uni+gender,  sample1623CE_100)
+has_popular_name_100 <- lm(FE_hpn~  year_decision+average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender,  sample1623CE_100)
 summary(has_popular_name_100)
 
 length_proceeding_C_100 <- lm(length_proceeding~     year_decision+n_applicants+
                              n_disputed_act +controversial+
                              n_concerned_act + n_concerned_cact + n_topics + 
-                             + average_yob+ var_yob +background+uni+gender, sample1623CE_100)
+                             + average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender, sample1623CE_100)
 summary(length_proceeding_C_100)
 
 outcome_C_100 <- lm(outcome~ year_decision+n_applicants+
                    n_disputed_act +controversial+
                    n_concerned_act + n_concerned_cact + n_topics + 
-                   + average_yob+ var_yob +background+uni+gender, sample1623CE_100)
+                   + average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender, sample1623CE_100)
 summary(outcome_C_100)
 
 has_popular_name_C_100 <- lm(has_popular_name~ year_decision+n_applicants+
                             n_disputed_act +controversial+
                             n_concerned_act + n_concerned_cact + n_topics + 
-                            + average_yob+ var_yob +background+uni+gender,  sample1623CE_100)
+                            + average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender,  sample1623CE_100)
 summary(has_popular_name_C_100)
 
 length_proceeding_CF_100 <- lm(length_proceeding~  year_decision+   n_applicants+judge_rapporteur_id+
                                      n_disputed_act +controversial+
                                      n_concerned_act + n_concerned_cact + n_topics + 
-                                    + average_yob+ var_yob +background+uni+gender, sample1623CE_100)
+                                    + average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender, sample1623CE_100)
 summary(length_proceeding_CF_100)
 
 
 outcome_CF_100 <- lm(outcome~ year_decision+n_applicants+judge_rapporteur_id+
                 n_disputed_act +controversial+
                 n_concerned_act + n_concerned_cact + n_topics + 
-                + average_yob+ var_yob +background+uni+gender,  sample1623CE_100)
+                + average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender,  sample1623CE_100)
 summary(outcome_CF_100)
 
 has_popular_name_CF_100 <- lm(has_popular_name~ year_decision+n_applicants+judge_rapporteur_id+
                          n_disputed_act +controversial+
                          n_concerned_act + n_concerned_cact + n_topics + 
-                         + average_yob+ var_yob +background+uni+gender, sample1623CE_100)
+                         + average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender, sample1623CE_100)
 summary(has_popular_name_CF_100)
 
 
@@ -425,69 +433,51 @@ sample1623CE_50 <- left_join(sample1623CE_50,chamber_effects_hpn, by="chamber_id
 
 
 
-# Regressing the chamber fixed effect on the characteristics of the chamber
-sample1623CE_50<- sample1623CE_50 %>% mutate(average_yob=(judge_yob+judge_yob+judge_yob3)/3,
-                                               var_yob=(judge_yob^2+judge_yob2^2+judge_yob3^2)/3-(judge_yob+judge_yob2+judge_yob3)^2/9) %>%
-  rowwise() %>%
-  mutate(background = str_c(sort(c(str_sub(judge_profession, 1, 1), 
-                                   str_sub(judge_profession2, 1, 1), 
-                                   str_sub(judge_profession3, 1, 1))), 
-                            collapse = ""),
-         uni = str_c(sort(c(str_sub(as.character(judge_uni), 1, 1), 
-                            str_sub(as.character(judge_uni2), 1, 1), 
-                            str_sub(as.character(judge_uni3), 1, 1))), 
-                     collapse = ""),
-         gender = str_c(sort(c(str_sub(as.character(judge_gender), 1, 1), 
-                               str_sub(as.character(judge_gender2), 1, 1), 
-                               str_sub(as.character(judge_gender3), 1, 1)), decreasing = TRUE), 
-                        collapse = "")) %>%
-  mutate(gender=  factor(gender, levels = c("MMM", "MMF", "MFF")) ) %>%
-  ungroup()
 
-length_proceeding_50 <- lm(FE_lp~ year_decision+average_yob+ var_yob +background+uni+gender, sample1623CE_50)
+length_proceeding_50 <- lm(FE_lp~ year_decision+average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender, sample1623CE_50)
 summary(length_proceeding_50)
 
-outcome_50 <- lm(FE_o ~  year_decision+average_yob+ var_yob +background+uni+gender,  sample1623CE_50)
+outcome_50 <- lm(FE_o ~  year_decision+average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender,  sample1623CE_50)
 summary(outcome_50)
 
-has_popular_name_50 <- lm(FE_hpn~  year_decision+average_yob+ var_yob +background+uni+gender,  sample1623CE_50)
+has_popular_name_50 <- lm(FE_hpn~  year_decision+average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender,  sample1623CE_50)
 summary(has_popular_name_50)
 
 length_proceeding_C_50 <- lm(length_proceeding~     year_decision+n_applicants+
                                 n_disputed_act +controversial+
                                 n_concerned_act + n_concerned_cact + n_topics + 
-                                + average_yob+ var_yob +background+uni+gender, sample1623CE_50)
+                                + average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender, sample1623CE_50)
 summary(length_proceeding_C_50)
 
 outcome_C_50 <- lm(outcome~ year_decision+n_applicants+
                       n_disputed_act +controversial+
                       n_concerned_act + n_concerned_cact + n_topics + 
-                      + average_yob+ var_yob +background+uni+gender, sample1623CE_50)
+                      + average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender, sample1623CE_50)
 summary(outcome_C_50)
 
 has_popular_name_C_50 <- lm(has_popular_name~ year_decision+n_applicants+
                                n_disputed_act +controversial+
                                n_concerned_act + n_concerned_cact + n_topics + 
-                               + average_yob+ var_yob +background+uni+gender,  sample1623CE_50)
+                               + average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender,  sample1623CE_50)
 summary(has_popular_name_C_50)
 
 length_proceeding_CF_50 <- lm(length_proceeding~  year_decision+   n_applicants+judge_rapporteur_id+
                                  n_disputed_act +controversial+
                                  n_concerned_act + n_concerned_cact + n_topics + 
-                                 + average_yob+ var_yob +background+uni+gender, sample1623CE_50)
+                                 + average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender, sample1623CE_50)
 summary(length_proceeding_CF_50)
 
 
 outcome_CF_50 <- lm(outcome~ year_decision+n_applicants+judge_rapporteur_id+
                        n_disputed_act +controversial+
                        n_concerned_act + n_concerned_cact + n_topics + 
-                       + average_yob+ var_yob +background+uni+gender,  sample1623CE_50)
+                       + average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender,  sample1623CE_50)
 summary(outcome_CF_50)
 
 has_popular_name_CF_50 <- lm(has_popular_name~ year_decision+n_applicants+judge_rapporteur_id+
                                 n_disputed_act +controversial+
                                 n_concerned_act + n_concerned_cact + n_topics + 
-                                + average_yob+ var_yob +background+uni+gender, sample1623CE_50)
+                                + average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender, sample1623CE_50)
 summary(has_popular_name_CF_50)
 
 
@@ -597,68 +587,51 @@ sample1623CE_20 <- left_join(sample1623CE_20,chamber_effects_hpn, by="chamber_id
 
 
 # Regressing the chamber fixed effect on the characteristics of the chamber
-sample1623CE_20<- sample1623CE_20 %>% mutate(average_yob=(judge_yob+judge_yob+judge_yob3)/3,
-                                             var_yob=(judge_yob^2+judge_yob2^2+judge_yob3^2)/3-(judge_yob+judge_yob2+judge_yob3)^2/9) %>%
-  rowwise() %>%
-  mutate(background = str_c(sort(c(str_sub(judge_profession, 1, 1), 
-                                   str_sub(judge_profession2, 1, 1), 
-                                   str_sub(judge_profession3, 1, 1))), 
-                            collapse = ""),
-         uni = str_c(sort(c(str_sub(as.character(judge_uni), 1, 1), 
-                            str_sub(as.character(judge_uni2), 1, 1), 
-                            str_sub(as.character(judge_uni3), 1, 1))), 
-                     collapse = ""),
-         gender = str_c(sort(c(str_sub(as.character(judge_gender), 1, 1), 
-                               str_sub(as.character(judge_gender2), 1, 1), 
-                               str_sub(as.character(judge_gender3), 1, 1)), decreasing = TRUE), 
-                        collapse = "")) %>%
-  mutate(gender=  factor(gender, levels = c("MMM", "MMF", "MFF")) ) %>%
-  ungroup()
 
-length_proceeding_20 <- lm(FE_lp~ year_decision+average_yob+ var_yob +background+uni+gender, sample1623CE_20)
+length_proceeding_20 <- lm(FE_lp~ year_decision+average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender, sample1623CE_20)
 summary(length_proceeding_20)
 
-outcome_20 <- lm(FE_o ~  year_decision+average_yob+ var_yob +background+uni+gender,  sample1623CE_20)
+outcome_20 <- lm(FE_o ~  year_decision+average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender,  sample1623CE_20)
 summary(outcome_20)
 
-has_popular_name_20 <- lm(FE_hpn~  year_decision+average_yob+ var_yob +background+uni+gender,  sample1623CE_20)
+has_popular_name_20 <- lm(FE_hpn~  year_decision+average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender,  sample1623CE_20)
 summary(has_popular_name_20)
 
 length_proceeding_C_20 <- lm(length_proceeding~     year_decision+n_applicants+
                                n_disputed_act +controversial+
                                n_concerned_act + n_concerned_cact + n_topics + 
-                               + average_yob+ var_yob +background+uni+gender, sample1623CE_20)
+                               + average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender, sample1623CE_20)
 summary(length_proceeding_C_20)
 
 outcome_C_20 <- lm(outcome~ year_decision+n_applicants+
                      n_disputed_act +controversial+
                      n_concerned_act + n_concerned_cact + n_topics + 
-                     + average_yob+ var_yob +background+uni+gender, sample1623CE_20)
+                     + average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender, sample1623CE_20)
 summary(outcome_C_20)
 
 has_popular_name_C_20 <- lm(has_popular_name~ year_decision+n_applicants+
                               n_disputed_act +controversial+
                               n_concerned_act + n_concerned_cact + n_topics + 
-                              + average_yob+ var_yob +background+uni+gender,  sample1623CE_20)
+                              + average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender,  sample1623CE_20)
 summary(has_popular_name_C_20)
 
 length_proceeding_CF_20 <- lm(length_proceeding~  year_decision+   n_applicants+judge_rapporteur_id+
                                 n_disputed_act +controversial+
                                 n_concerned_act + n_concerned_cact + n_topics + 
-                                + average_yob+ var_yob +background+uni+gender, sample1623CE_20)
+                                + average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender, sample1623CE_20)
 summary(length_proceeding_CF_20)
 
 
 outcome_CF_20 <- lm(outcome~ year_decision+n_applicants+judge_rapporteur_id+
                       n_disputed_act +controversial+
                       n_concerned_act + n_concerned_cact + n_topics + 
-                      + average_yob+ var_yob +background+uni+gender,  sample1623CE_20)
+                      + average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender,  sample1623CE_20)
 summary(outcome_CF_20)
 
 has_popular_name_CF_20 <- lm(has_popular_name~ year_decision+n_applicants+judge_rapporteur_id+
                                n_disputed_act +controversial+
                                n_concerned_act + n_concerned_cact + n_topics + 
-                               + average_yob+ var_yob +background+uni+gender, sample1623CE_20)
+                               + average_yob+ var_yob +same_background+all_different_background+same_uni+all_different_uni+gender, sample1623CE_20)
 summary(has_popular_name_CF_20)
 
 
