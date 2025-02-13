@@ -15,77 +15,60 @@ sample1623 <- read_rds("sample1623.rds")
 
 
 ########### chamber_id balance ########
-balance <- sample1623%>% group_by(chamber_id) %>% filter(n()>500) %>%
-  summarise(
-    mean_n_concerned_act=  mean(n_concerned_act),
-    lCI_n_concerned_act= mean(n_concerned_act)-qt(0.975, df = n() - 1) * sd(n_concerned_act) / sqrt(n()),
-    uCI_n_concerned_act= mean(n_concerned_act)+qt(0.975, df = n() - 1) * sd(n_concerned_act) / sqrt(n()),
-    mean_n_concerned_cact=  mean(n_concerned_cact),
-    lCI_n_concerned_cact= mean(n_concerned_cact)-qt(0.975, df = n() - 1) * sd(n_concerned_cact) / sqrt(n()),
-    uCI_n_concerned_cact= mean(n_concerned_cact)+qt(0.975, df = n() - 1) * sd(n_concerned_cact) / sqrt(n()),
-    mean_n_citations=  mean(n_citations),
-    lCI_n_citations= mean(n_citations)-qt(0.975, df = n() - 1) * sd(n_citations) / sqrt(n()),
-    uCI_n_citations= mean(n_citations)+qt(0.975, df = n() - 1) * sd(n_citations) / sqrt(n()),
-    mean_controversial=  mean(controversial),
-    lCI_controversial= mean(controversial)-qt(0.975, df = n() - 1) * sd(controversial) / sqrt(n()),
-    uCI_controversial= mean(controversial)+qt(0.975, df = n() - 1) * sd(controversial) / sqrt(n()),
-    mean_meritory=  mean(meritory),
-    lCI_meritory= mean(meritory)-qt(0.975, df = n() - 1) * sd(meritory) / sqrt(n()),
-    uCI_meritory= mean(meritory)+qt(0.975, df = n() - 1) * sd(meritory) / sqrt(n())
+balance <- sample1623%>% group_by(chamber_id) %>% filter(n()>100) %>%
+  ungroup() %>%
+  rowwise() %>%
+  mutate(
+   n_applicants = length(applicant),
+   
+  ) %>%
+ungroup() %>%
+  group_by(chamber_id) %>%
+  summarize(
+    mean_n = mean(n_applicants, na.rm = TRUE),
+    se_n = sd(n_applicants, na.rm = TRUE) / sqrt(n())
   )
-
-ggplot(balance, aes(x=chamber_id, y=mean_n_concerned_act)) +
-  geom_col(fill="skyblue") +
-  labs(
+  
+ggplot(balance, aes(x=chamber_id, y = mean_n)) +
+  geom_bar(fill="skyblue", stat='summary', fun='mean') +
+labs(
     y = "Number of Concerned Acts",
     x = "Chamber"
   ) + 
-  geom_errorbar(aes(ymin = lCI_n_concerned_act, ymax = uCI_n_concerned_act))  +
-  theme( text=element_text(size=20),
-         axis.text.x = element_text(size=10),
-         panel.grid.major = element_blank(),  
-         panel.grid.minor = element_blank(),
-         panel.background = element_blank())
-
-ggplot(balance, aes(x=chamber_id, y=mean_n_concerned_cact)) +
-  geom_col(fill="skyblue") +
+  geom_errorbar(aes(ymin = mean_n - se_n, ymax = mean_n + se_n), width = 0.2) +
   labs(
-    y = "Number of Concerned Constitutional Acts",
-    x = "Chamber"
-  ) + 
-  geom_errorbar(aes(ymin = lCI_n_concerned_cact, ymax = uCI_n_concerned_cact))  +
-  theme(text=element_text(size=20),
-        axis.text.x = element_text(size=10),
-        panel.grid.major = element_blank(),  
-        panel.grid.minor = element_blank(),
-        panel.background = element_blank())
-
-ggplot(balance, aes(x=chamber_id, y=mean_controversial)) +
-  geom_col(fill="skyblue") +
-  geom_errorbar(aes(ymin = lCI_controversial, ymax = uCI_controversial)) +
-  labs(
-    y = "Proportion of Controversial Cases",
+    y = "Number of Applicants",
     x = "Chamber"
   ) +
-  theme(text=element_text(size=20),
-        axis.text.x = element_text(size=10),
-        panel.grid.major = element_blank(),  
-        panel.grid.minor = element_blank(),
-        panel.background = element_blank())
+  theme_minimal()
+
+dow <- sample1623  %>%
+  group_by(chamber_id) %>% filter(n()>100) %>%
+  mutate(dow=wday(ymd(date_submission))) %>% ungroup()
+
+ggplot(dow, aes(x = factor(dow), fill = chamber_id)) +
+  geom_bar(aes(y = after_stat(prop), group = chamber_id), position = "dodge") +
+  scale_x_discrete(
+    labels = c("7" = "Sa", "1" = "Su", "2" = "Mo", "3" = "Tu", 
+               "4" = "We", "5" = "Th", "6" = "Fr")
+  ) +
+  labs(
+    y = "Proportion",
+    x = "Day of the Week"
+  ) +
+  facet_wrap(~ chamber_id, ncol = 4) +  # Force vertical layout
+  theme_minimal()
 
 
-balance <- sample1623%>% group_by(chamber_id)  %>% filter(n()>500) %>%
+balance <- sample1623%>% group_by(chamber_id)  %>% filter(n()>100) %>%
   ungroup()
 
 
-manova(cbind(n_concerned_act,n_concerned_cact,controversial)~chamber_id, balance) %>% summary()
-
-aov(n_concerned_act ~ chamber_id, balance) %>% summary()
-aov(n_concerned_cact ~ chamber_id, balance) %>% summary()
-aov(controversial ~ chamber_id, balance) %>% summary()
+aov(n_applicants ~ chamber_id, balance) %>% summary()
+aov(dow ~ chamber_id, dow) %>% summary()
 
 balance <- sample1623%>% group_by(chamber_id) %>%
-  summarise(n_cases=n())
+  summarise(n=n())
 
 
 ggplot(balance, aes(n)) +
