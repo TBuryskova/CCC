@@ -120,45 +120,33 @@ sample1623CE_100 <- left_join(sample1623CE_100,chamber_effects_cpy, by="chamber_
 
 
 # Regressing the chamber fixed effect on the characteristics of the chamber
-sample1623CE_100<- sample1623CE_100 %>% mutate(average_yob=(judge_yob+judge_yob+judge_yob3)/3,
-                                               var_yob=(judge_yob^2+judge_yob2^2+judge_yob3^2)/3-(judge_yob+judge_yob2+judge_yob3)^2/9) %>%
-  rowwise() %>%
-  mutate(background = str_c(sort(c(str_sub(judge_profession, 1, 1), 
-                                   str_sub(judge_profession2, 1, 1), 
-                                   str_sub(judge_profession3, 1, 1))), 
-                            collapse = ""),
-         uni = str_c(sort(c(str_sub(as.character(judge_uni), 1, 1), 
-                            str_sub(as.character(judge_uni2), 1, 1), 
-                            str_sub(as.character(judge_uni3), 1, 1))), 
-                     collapse = ""),
-         gender = str_c(sort(c(str_sub(as.character(judge_gender), 1, 1), 
-                               str_sub(as.character(judge_gender2), 1, 1), 
-                               str_sub(as.character(judge_gender3), 1, 1)), decreasing = TRUE), 
-                        collapse = "")) %>%
-  mutate(gender=  factor(gender, levels = c("MMM", "MMF", "MFF")) ) %>%
-  ungroup() 
 
-length_proceeding_100 <- lm(FE_lp~ average_yob+ var_yob +background+uni+gender, sample1623CE_100)
 
-outcome_100 <- lm(FE_o ~  average_yob+ var_yob +background+uni+gender,  sample1623CE_100)
+length_proceeding_100 <- lm(FE_lp~ average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, sample1623CE_100)
 
+<<<<<<< HEAD
 cited_per_year_100 <- lm(FE_cpy~  average_yob+ var_yob +background+uni+gender,  sample1623CE_100)
+=======
+outcome_100 <- lm(FE_o ~  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender,  sample1623CE_100)
+
+cited_per_year_100 <- lm(FE_cpy~  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender,  sample1623CE_100)
+>>>>>>> 0fda2f085b82323a20f5d76361904ae27c4fe7b5
 
 length_proceeding_C_100 <- lm(FE_lp~     n_applicants+
                                 n_disputed_act +controversial+
                                 n_concerned_act + n_concerned_cact + n_topics + 
-                                + average_yob+ var_yob +background+uni+gender, sample1623CE_100)
+                                + average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, sample1623CE_100)
 summary(length_proceeding_C_100)
 
 outcome_C_100 <- lm(FE_o~ n_applicants+
                       n_disputed_act +controversial+
                       n_concerned_act + n_concerned_cact + n_topics + 
-                      + average_yob+ var_yob +background+uni+gender, sample1623CE_100)
+                      + average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, sample1623CE_100)
 
 cited_per_year_C_100 <- lm(FE_cpy~ n_applicants+
                                n_disputed_act +controversial+
                                n_concerned_act + n_concerned_cact + n_topics + 
-                               + average_yob+ var_yob +background+uni+gender,  sample1623CE_100)
+                               + average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender,  sample1623CE_100)
 
 
 sample1623_50 <- sample1623 %>%
@@ -264,45 +252,31 @@ sample1623CE_50 <- left_join(sample1623CE_50,chamber_effects_cpy, by="chamber_id
 
 
 
-# Regressing the chamber fixed effect on the characteristics of the chamber
-sample1623CE_50<- sample1623CE_50 %>% mutate(average_yob=(judge_yob+judge_yob+judge_yob3)/3,
-                                             var_yob=(judge_yob^2+judge_yob2^2+judge_yob3^2)/3-(judge_yob+judge_yob2+judge_yob3)^2/9) %>%
-  rowwise() %>%
-  mutate(background = str_c(sort(c(str_sub(judge_profession, 1, 1), 
-                                   str_sub(judge_profession2, 1, 1), 
-                                   str_sub(judge_profession3, 1, 1))), 
-                            collapse = ""),
-         uni = str_c(sort(c(str_sub(as.character(judge_uni), 1, 1), 
-                            str_sub(as.character(judge_uni2), 1, 1), 
-                            str_sub(as.character(judge_uni3), 1, 1))), 
-                     collapse = ""),
-         gender = str_c(sort(c(str_sub(as.character(judge_gender), 1, 1), 
-                               str_sub(as.character(judge_gender2), 1, 1), 
-                               str_sub(as.character(judge_gender3), 1, 1)), decreasing = TRUE), 
-                        collapse = "")) %>%
-  mutate(gender=  factor(gender, levels = c("MMM", "MMF", "MFF")) ) %>%
-  ungroup()
 
-length_proceeding_50 <- lm(FE_lp~ average_yob+ var_yob +background+uni+gender, sample1623CE_50)
+length_proceeding_50 <- lm(FE_lp~ average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, sample1623CE_50)
 
-outcome_50 <- lm(FE_o ~  average_yob+ var_yob +background+uni+gender,  sample1623CE_50)
+outcome_50 <- lm(FE_o ~  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender,  sample1623CE_50)
 
+<<<<<<< HEAD
 cited_per_year_50 <- lm(FE_cpy~  average_yob+ var_yob +background+uni+gender,  sample1623CE_50)
+=======
+cited_per_year_50 <- lm(FE_cpy~  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender,  sample1623CE_50)
+>>>>>>> 0fda2f085b82323a20f5d76361904ae27c4fe7b5
 
 length_proceeding_C_50 <- lm(FE_lp~     n_applicants+
                                n_disputed_act +controversial+
                                n_concerned_act + n_concerned_cact + n_topics + 
-                               + average_yob+ var_yob +background+uni+gender, sample1623CE_50)
+                               + average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, sample1623CE_50)
 
 outcome_C_50 <- lm(FE_o~ n_applicants+
                      n_disputed_act +controversial+
                      n_concerned_act + n_concerned_cact + n_topics + 
-                     + average_yob+ var_yob +background+uni+gender, sample1623CE_50)
+                     + average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, sample1623CE_50)
 
 cited_per_year_C_50 <- lm(FE_cpy~ n_applicants+
                               n_disputed_act +controversial+
                               n_concerned_act + n_concerned_cact + n_topics + 
-                              + average_yob+ var_yob +background+uni+gender,  sample1623CE_50)
+                              + average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender,  sample1623CE_50)
 
 
 
@@ -410,44 +384,32 @@ sample1623CE_20 <- left_join(sample1623CE_20,chamber_effects_cpy, by="chamber_id
 
 
 # Regressing the chamber fixed effect on the characteristics of the chamber
-sample1623CE_20<- sample1623CE_20 %>% mutate(average_yob=(judge_yob+judge_yob+judge_yob3)/3,
-                                             var_yob=(judge_yob^2+judge_yob2^2+judge_yob3^2)/3-(judge_yob+judge_yob2+judge_yob3)^2/9) %>%
-  rowwise() %>%
-  mutate(background = str_c(sort(c(str_sub(judge_profession, 1, 1), 
-                                   str_sub(judge_profession2, 1, 1), 
-                                   str_sub(judge_profession3, 1, 1))), 
-                            collapse = ""),
-         uni = str_c(sort(c(str_sub(as.character(judge_uni), 1, 1), 
-                            str_sub(as.character(judge_uni2), 1, 1), 
-                            str_sub(as.character(judge_uni3), 1, 1))), 
-                     collapse = ""),
-         gender = str_c(sort(c(str_sub(as.character(judge_gender), 1, 1), 
-                               str_sub(as.character(judge_gender2), 1, 1), 
-                               str_sub(as.character(judge_gender3), 1, 1)), decreasing = TRUE), 
-                        collapse = "")) %>%
-  mutate(gender=  factor(gender, levels = c("MMM", "MMF", "MFF")) ) %>%
-  ungroup()
 
-length_proceeding_20 <- lm(FE_lp~ average_yob+ var_yob +background+uni+gender, sample1623CE_20)
 
-outcome_20 <- lm(FE_o ~  average_yob+ var_yob +background+uni+gender,  sample1623CE_20)
+length_proceeding_20 <- lm(FE_lp~ average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, sample1623CE_20)
 
+<<<<<<< HEAD
 cited_per_year_20 <- lm(FE_cpy~  average_yob+ var_yob +background+uni+gender,  sample1623CE_20)
+=======
+outcome_20 <- lm(FE_o ~  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender,  sample1623CE_20)
+
+cited_per_year_20 <- lm(FE_cpy~  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender,  sample1623CE_20)
+>>>>>>> 0fda2f085b82323a20f5d76361904ae27c4fe7b5
 
 length_proceeding_C_20 <- lm(FE_lp~     n_applicants+
                                n_disputed_act +controversial+
                                n_concerned_act + n_concerned_cact + n_topics + 
-                               + average_yob+ var_yob +background+uni+gender, sample1623CE_20)
+                               + average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, sample1623CE_20)
 
 outcome_C_20 <- lm(FE_o~ n_applicants+
                      n_disputed_act +controversial+
                      n_concerned_act + n_concerned_cact + n_topics + 
-                     + average_yob+ var_yob +background+uni+gender, sample1623CE_20)
+                     + average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, sample1623CE_20)
 
 cited_per_year_C_20 <- lm(FE_cpy~ n_applicants+
                               n_disputed_act +controversial+
                               n_concerned_act + n_concerned_cact + n_topics + 
-                              + average_yob+ var_yob +background+uni+gender,  sample1623CE_20)
+                              + average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender,  sample1623CE_20)
 
 clustered_se_100 <- vcovCL(length_proceeding_100, cluster = ~ chamber_id)
 clustered_se_C_100 <- vcovCL(length_proceeding_C_100, cluster = ~ chamber_id)

@@ -118,7 +118,34 @@ sample1623 <- data_basic %>% filter(ymd(date_submission)>=ymd("2016-01-01"),
   judge_age2 =  year(ymd(date_submission))-judge_yob2,
   judge_age3 =  year(ymd(date_submission))-judge_yob3,
 
-         )
+         )  %>%
+  mutate(average_yob=(judge_yob+judge_yob+judge_yob3)/3,
+         var_yob=(judge_yob^2+judge_yob2^2+judge_yob3^2)/3-(judge_yob+judge_yob2+judge_yob3)^2/9) %>%
+  rowwise() %>%
+  mutate(background = str_c(sort(c(str_sub(judge_profession, 1, 1), 
+                                   str_sub(judge_profession2, 1, 1), 
+                                   str_sub(judge_profession3, 1, 1))), 
+                            collapse = ""),
+         uni = str_c(sort(c(str_sub(as.character(judge_uni), 1, 1), 
+                            str_sub(as.character(judge_uni2), 1, 1), 
+                            str_sub(as.character(judge_uni3), 1, 1))), 
+                     collapse = ""),
+         gender = str_c(sort(c(str_sub(as.character(judge_gender), 1, 1), 
+                               str_sub(as.character(judge_gender2), 1, 1), 
+                               str_sub(as.character(judge_gender3), 1, 1)), decreasing = TRUE), 
+                        collapse = ""),
+         distinct_backgrounds=length(unique(c(judge_profession, judge_profession2, judge_profession3))),
+         scholar=(judge_profession=="scholar"| judge_profession2=="scholar"| judge_profession3=="scholar"),
+         distinct_uni=length(unique(c(judge_uni, judge_uni2, judge_uni3)))
+  ) %>%
+  mutate(gender=  factor(gender, levels = c("MMM", "MMF", "MFF")) ) %>%
+  ungroup() %>%
+  mutate(same_background=(distinct_backgrounds==1),
+         all_different_background=(distinct_backgrounds==3),
+         same_uni=(distinct_uni==1),
+         all_different_uni=(distinct_uni==3)
+  )
+
   
 
 sample1623 <- sample1623 %>% filter(official1623==FALSE,
