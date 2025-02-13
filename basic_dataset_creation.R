@@ -18,6 +18,8 @@ ccc_separate_opinions <- read_rds("../data/rds/ccc_separate_opinions.rds")
 ccc_subject_matter <- read_rds("../data/rds/ccc_subject_matter.rds")
 ccc_verdicts <- read_rds("../data/rds/ccc_verdicts.rds")
 ccc_metadata <- read_rds("../data/rds/ccc_metadata.rds")
+ccc_clerks<- read_rds("../data/rds/ccc_clerks.rds")
+
 
 controversial_topics <- c(
   "diskriminace",
