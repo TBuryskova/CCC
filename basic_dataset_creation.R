@@ -108,9 +108,7 @@ data_basic <- data_basic %>%
   left_join(judges, by=c("judge2"="judge_id"), suffix=c("", "2")) %>%
   left_join(judges, by=c("judge3"="judge_id"), suffix=c("", "3"))
 
-sample1623 <- data_basic %>% filter(ymd(date_submission)>=ymd("2016-01-01"),
-                                    ymd(date_submission)<=ymd("2023-01-01")
-) %>% 
+data_basic <- data_basic %>%
   mutate(unresolved_rotation=case_when(ymd(date_submission)<ymd("2018-01-01") & ymd(date_decision)>ymd("2019-12-31") ~ TRUE,
                                        ymd(date_submission)<ymd("2016-01-01") & ymd(date_decision)>ymd("2017-12-31") ~ TRUE,
                                        TRUE ~ FALSE
@@ -150,10 +148,16 @@ sample1623 <- data_basic %>% filter(ymd(date_submission)>=ymd("2016-01-01"),
 
   
 
-sample1623 <- sample1623 %>% filter(official1623==FALSE,
+sample1623 <- data_basic %>% filter(official1623==FALSE,
                                   official16232==FALSE,
-                                  official16233==FALSE, !unresolved_rotation)
+                                  official16233==FALSE, !unresolved_rotation) %>%
+ filter(ymd(date_submission)>=ymd("2016-01-01"),
+             ymd(date_submission)<=ymd("2023-01-01")
+  ) 
+
+data_basic <- data_basic %>%  filter(ymd(date_submission)>=ymd("2016-01-01")) 
 
 saveRDS(sample1623, "sample1623.rds")
+saveRDS(data_basic, "data_basic.rds")
 
 
