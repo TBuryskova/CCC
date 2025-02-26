@@ -100,7 +100,7 @@ summarise(judge_term_start=min(ymd(judge_term_start)),
           judge_reelection=max(judge_reelection)) %>%
   ungroup() %>%
   left_join(ccc_judges %>% select(judge_id,judge_name,judge_yob,judge_gender, judge_uni, judge_degree, judge_profession), by=join_by(judge_id),multiple="first") %>%
-  mutate(official1623=case_when(judge_id%in% c("J:41","J:40","J:42") ~ TRUE,
+  mutate(official1623=case_when(judge_id %in% c("J:41","J:40","J:42") ~ TRUE,
                                 TRUE ~ FALSE))  # Tomkova, Rychetsky, Fenyk od srpna 2013 do kvetna 2023 
 
 data_basic <- data_basic %>% 
@@ -147,17 +147,71 @@ data_basic <- data_basic %>%
   )
 
   
-
-sample1623 <- data_basic %>% filter(official1623==FALSE,
-                                  official16232==FALSE,
-                                  official16233==FALSE, !unresolved_rotation) %>%
- filter(ymd(date_submission)>=ymd("2016-01-01"),
-             ymd(date_submission)<=ymd("2023-01-01")
-  ) 
+# 
+# sample1623 <- data_basic %>% filter(official1623==FALSE,
+#                                   official16232==FALSE,
+#                                   official16233==FALSE, !unresolved_rotation) %>%
+#  filter(ymd(date_submission)>=ymd("2016-01-01"),
+#              ymd(date_submission)<=ymd("2023-01-01")
+#   ) 
 
 data_basic <- data_basic %>%  filter(ymd(date_submission)>=ymd("2016-01-01")) 
 
-saveRDS(sample1623, "sample1623.rds")
+# saveRDS(sample1623, "sample1623.rds")
+
+#merge with webscrapped
+chambers <- read.csv("../data/csv/chamber compositions.csv")
+substitute <- read.csv("../data/csv/substitute chamber members.csv")
+
+
+chambers <- chambers %>%
+  mutate(
+    start_date = dmy(start_date),
+    end_date = dmy(end_date)) %>% 
+  mutate(end_date=case_when(is.na(end_date)~ dmy("31/12/2024"),
+                            TRUE ~ end_date) )%>%
+  rename(chamber_number=chamber_id)
+
+substitute <- substitute %>%
+  mutate(
+    start_date = dmy(start_date),
+    end_date = dmy(end_date)) %>% 
+  mutate(end_date=case_when(is.na(end_date)~ dmy("31/12/2024"),
+                            TRUE ~ end_date) )%>%
+  rename(chamber_number=chamber_id)
+
+data_basic <- data_basic %>% 
+  mutate(formation=case_when(formation=="First Chamber" ~ "1st",
+                             formation=="Second Chamber" ~ "2nd",
+                             formation=="Third Chamber" ~ "3rd",
+                             formation=="Fourth Chamber" ~ "4th"))
+
+decisions_with_judges <- data_basic %>%
+  left_join(chambers, by = c("formation" = "chamber_number")) %>%
+  filter(ymd(date_submission) >= start_date & ymd(date_submission) <= end_date) %>%
+  group_by(doc_id, formation, date_submission) %>%
+  summarise(asjudge1 = sort(unique(judge_id))[1],
+            asjudge2 = sort(unique(judge_id))[2],
+            asjudge3 = sort(unique(judge_id))[3]) %>%
+  ungroup() 
+
+decisions_with_substitutes <- data_basic %>%
+  left_join(substitute, by = c("formation" = "chamber_number")) %>%
+  filter(date_submission >= start_date & (date_submission) <= end_date) %>%
+  group_by(doc_id, formation, date_submission) %>%
+  summarise(subjudgeA = sort(unique(judge_id))[1],
+            subjudgeB = sort(unique(judge_id))[2]) %>%
+  ungroup()
+
+data_basic <- data_basic %>%
+  left_join(decisions_with_judges, by = c("doc_id", "formation", "date_submission")) %>%
+  left_join(decisions_with_substitutes, by = c("doc_id", "formation", "date_submission")) %>%
+  mutate(composition_ok =  if_all(c(judge1, judge2, judge3), ~ . %in% c(asjudge1, asjudge2, asjudge3, subjudgeA, subjudgeB))
+  )
+
+data_clean <- data_basic   %>% filter(composition_ok)
+
 saveRDS(data_basic, "data_basic.rds")
+saveRDS(data_clean, "data_clean.rds")
 
 
