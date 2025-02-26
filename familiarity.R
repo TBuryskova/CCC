@@ -10,10 +10,10 @@ library(tidyverse)
 library(purrr)
 library(xtable)
 
-sample1623 <- read_rds("sample1623.rds")
+data_clean <- read_rds("data_clean.rds")
 
-judge_input = "Kateřina Šimáčková"
-familiarity <-  sample1623 %>%  filter(judge_name == judge_input |
+judge_input = "Ludvík David"
+familiarity <-  data_clean %>%  filter(judge_name == judge_input |
                            judge_name2 == judge_input |
                            judge_name3 == judge_input) %>% 
     select(date_submission, judge_name, judge_name2, judge_name3)

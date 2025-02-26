@@ -20,8 +20,17 @@ substitute <- read.csv("../data/csv/substitute chamber members.csv")
 
 
 chambers <- chambers %>%
-  mutate(start_date = dmy(start_date),
-         end_date = dmy(end_date))
+  mutate(
+    start_date = dmy(start_date),
+         end_date = dmy(end_date)) %>% 
+  rename(chamber_number=chamber_id)
+
+substitute <- substitute %>%
+  mutate(
+    start_date = dmy(start_date),
+    end_date = dmy(end_date)) %>% 
+  rename(chamber_number=chamber_id)
+
 
 data_basic <- data_basic %>% 
   mutate(formation=case_when(formation=="First Chamber" ~ "1st",
@@ -30,13 +39,28 @@ data_basic <- data_basic %>%
                              formation=="Fourth Chamber" ~ "4th"))
 
 decisions_with_judges <- data_basic %>%
-  left_join(chambers, by = c("formation" = "chamber_id")) %>%
+  left_join(chambers, by = c("formation" = "chamber_number")) %>%
   filter(ymd(date_submission) >= start_date & ymd(date_submission) <= end_date) %>%
-  group_by(chamber_id, date_submission) %>%
-  summarise(judges = paste(sort(unique(judge_id)), collapse = "")) %>%
+  group_by(doc_id, formation, date_submission) %>%
+  summarise(asjudge1 = sort(unique(judge_id))[1],
+            asjudge2 = sort(unique(judge_id))[2],
+            asjudge3 = sort(unique(judge_id))[3]) %>%
+  ungroup() 
+
+decisions_with_substitutes <- data_basic %>%
+  left_join(substitute, by = c("formation" = "chamber_number")) %>%
+  filter(ymd(date_submission) >= start_date & ymd(date_submission) <= end_date) %>%
+  group_by(doc_id, formation, date_submission) %>%
+  summarise(subjudgeA = sort(unique(judge_id))[1],
+            subjudgeB = sort(unique(judge_id))[2]) %>%
   ungroup()
 
 final_decisions <- data_basic %>%
-  left_join(decisions_with_judges, by = c("chamber_id", "date_submission")) 
+  left_join(decisions_with_judges, by = c("doc_id")) %>%
+  left_join(decisions_with_substitutes, by = c("doc_id"))
 
-check <- final_decisions  %>% filter(chamber_id==judges)
+check <- final_decisions  %>% filter(
+  if_all(c(judge1, judge2, judge3), ~ . %in% c(asjudge1, asjudge2, asjudge3, subjudgeA, subjudgeB))
+)
+
+saveRDS(check, "data_clean.rds")
