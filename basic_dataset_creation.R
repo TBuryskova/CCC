@@ -52,8 +52,7 @@ data_basic <- ccc_metadata %>%
     type_verdict2=type_verdict[2],
     type_verdict3=type_verdict[3],
     final_verdict=type_verdict[[length(type_verdict)]],
-    n_citations=length(citations),
-    disputed_act1=disputed_act[1],
+     disputed_act1=disputed_act[1],
     disputed_act2=disputed_act[2],
     disputed_act3=disputed_act[3],
     n_disputed_act=length(disputed_act),
@@ -79,7 +78,9 @@ data_basic <- ccc_metadata %>%
   mutate(         has_popular_name=!is.na(popular_name)) %>%
   mutate(outcome=(outcome=="granted")) %>%
   mutate(length_proceeding=case_when(length_proceeding<0 ~ NA,
-                                     TRUE~length_proceeding))
+                                     TRUE~length_proceeding)) %>%
+  mutate(  n_citations = map_int(citations, ~ length(.x$citations[[1]])),
+)
 
 case_citations_count <- ccc_metadata %>%
   unnest(citations) %>%
@@ -206,8 +207,9 @@ decisions_with_substitutes <- data_basic %>%
 data_basic <- data_basic %>%
   left_join(decisions_with_judges, by = c("doc_id", "formation", "date_submission")) %>%
   left_join(decisions_with_substitutes, by = c("doc_id", "formation", "date_submission")) %>%
+  rowwise() %>%
   mutate(composition_ok =  if_all(c(judge1, judge2, judge3), ~ . %in% c(asjudge1, asjudge2, asjudge3, subjudgeA, subjudgeB))
-  )
+  ) %>% ungroup()
 
 data_clean <- data_basic   %>% filter(composition_ok)
 

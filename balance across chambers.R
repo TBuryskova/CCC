@@ -10,12 +10,12 @@ library(tidyverse)
 library(purrr)
 library(xtable)
 
-sample1623 <- read_rds("sample1623.rds")
+data_clean <- read_rds("data_clean.rds")
 
 
 
 ########### chamber_id balance ########
-balance <- sample1623%>% group_by(chamber_id) %>% filter(n()>100) %>%
+balance <- data_clean%>% group_by(chamber_id) %>% filter(n()>100) %>%
   ungroup() %>%
   rowwise() %>%
   mutate(
@@ -42,7 +42,7 @@ labs(
   ) +
   theme_minimal()
 
-dow <- sample1623  %>%
+dow <- data_clean  %>%
   group_by(chamber_id) %>% filter(n()>100) %>%
   mutate(dow=wday(ymd(date_submission))) %>% ungroup()
 
@@ -60,14 +60,13 @@ ggplot(dow, aes(x = factor(dow), fill = chamber_id)) +
   theme_minimal()
 
 
-balance <- sample1623%>% group_by(chamber_id)  %>% filter(n()>100) %>%
-  ungroup()
+balance <- data_clean
 
 
 aov(n_applicants ~ chamber_id, balance) %>% summary()
 aov(dow ~ chamber_id, dow) %>% summary()
 
-balance <- sample1623%>% group_by(chamber_id) %>%
+balance <- data_clean%>% group_by(chamber_id) %>%
   summarise(n=n())
 
 

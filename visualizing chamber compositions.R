@@ -23,6 +23,15 @@ ggplot(data_clean ) +
   geom_point(aes(x=date_submission, y=subjudgeB, color=formation), alpha=0.1) 
 
 
+ggplot(data_basic ) +
+  geom_point(aes(x=date_submission, y=judge1, color=formation)) +
+  geom_point(aes(x=date_submission,y=judge2, color=formation)) +
+  geom_point(aes(x=date_submission, y=judge3, color=formation)) +
+  geom_point(aes(x=date_submission, y=subjudgeA, color=formation), alpha=0.1) +
+  geom_point(aes(x=date_submission, y=subjudgeB, color=formation), alpha=0.1) 
+
+
+
 data_basic %>%
   mutate(month = floor_date(date_submission, "month")) %>%
   group_by(month) %>%
