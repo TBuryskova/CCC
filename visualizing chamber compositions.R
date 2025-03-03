@@ -21,8 +21,8 @@ ggplot(data_clean ) +
   geom_point(aes(x=date_submission, y=asjudge3, color=formation)) +
   geom_point(aes(x=date_submission, y=subjudgeA, color=formation), alpha=0.1) +
   geom_point(aes(x=date_submission, y=subjudgeB, color=formation), alpha=0.1) +
-  labs(y=judge)
-
+ylab("judge") +
+  labs(color="chamber")
 
 ggplot(data_basic ) +
   geom_point(aes(x=date_submission, y=judge1, color=formation)) +
@@ -30,7 +30,9 @@ ggplot(data_basic ) +
   geom_point(aes(x=date_submission, y=judge3, color=formation)) +
   geom_point(aes(x=date_submission, y=subjudgeA, color=formation), alpha=0.1) +
   geom_point(aes(x=date_submission, y=subjudgeB, color=formation), alpha=0.1) +
-  labs(y=judge)
+  ylab("judge")  +
+labs(color="chamber")
+
 
 
 
@@ -41,6 +43,6 @@ data_basic %>%
   ggplot(aes(x = month, y = avg_composition_ok)) +
   geom_line() +
   geom_point() +
-  labs(x = "Month", y = "Average Composition OK", title = "Monthly Averages of Composition OK") +
+  labs(x = "Month", y = "Composition OK") +
   theme_minimal()
   
