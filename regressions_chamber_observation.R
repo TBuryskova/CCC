@@ -78,4 +78,3 @@ summary(cited_per_year_C)
 
 stargazer(length_proceeding, length_proceeding_C,outcome, outcome_C,cited_per_year, cited_per_year_C,
           omit = c("^year", "^judge", "^n", "controversial", "Constant"))
-
