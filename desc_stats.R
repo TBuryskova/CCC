@@ -20,7 +20,7 @@ selected_vars <- c("n_applicants", "n_citations", "n_disputed_act",
 
 desc_stats_num <- data_clean%>%
   select(all_of(selected_vars)) %>%
-  summarise_if(is.numeric, funs(sd=sd(., na.rm=TRUE)))
+  summarise_if(is.numeric, funs(mean=mean(., na.rm=TRUE)))
 
 desc_stats_log <- data_clean%>%
   select(all_of(selected_vars)) %>%

@@ -20,7 +20,8 @@ ggplot(data_clean ) +
   geom_point(aes(x=date_submission,y=asjudge2, color=formation)) +
   geom_point(aes(x=date_submission, y=asjudge3, color=formation)) +
   geom_point(aes(x=date_submission, y=subjudgeA, color=formation), alpha=0.1) +
-  geom_point(aes(x=date_submission, y=subjudgeB, color=formation), alpha=0.1) 
+  geom_point(aes(x=date_submission, y=subjudgeB, color=formation), alpha=0.1) +
+  labs(y=judge)
 
 
 ggplot(data_basic ) +
@@ -28,7 +29,8 @@ ggplot(data_basic ) +
   geom_point(aes(x=date_submission,y=judge2, color=formation)) +
   geom_point(aes(x=date_submission, y=judge3, color=formation)) +
   geom_point(aes(x=date_submission, y=subjudgeA, color=formation), alpha=0.1) +
-  geom_point(aes(x=date_submission, y=subjudgeB, color=formation), alpha=0.1) 
+  geom_point(aes(x=date_submission, y=subjudgeB, color=formation), alpha=0.1) +
+  labs(y=judge)
 
 
 
