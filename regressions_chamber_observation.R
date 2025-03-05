@@ -14,23 +14,7 @@ data_cleanCE <- read_rds("data_cleanCE.rds")
 
 
 # Regressing the chamber fixed effect on the characteristics of the chamber
-data_cleanCE<- data_cleanCE %>% mutate(average_yob=(judge_yob+judge_yob+judge_yob3)/3,
-                                               var_yob=(judge_yob^2+judge_yob2^2+judge_yob3^2)/3-(judge_yob+judge_yob2+judge_yob3)^2/9) %>%
-  rowwise() %>%
-  mutate(background = str_c(sort(c(str_sub(judge_profession, 1, 1), 
-                                   str_sub(judge_profession2, 1, 1), 
-                                   str_sub(judge_profession3, 1, 1))), 
-                            collapse = ""),
-         uni = str_c(sort(c(str_sub(as.character(judge_uni), 1, 1), 
-                            str_sub(as.character(judge_uni2), 1, 1), 
-                            str_sub(as.character(judge_uni3), 1, 1))), 
-                     collapse = ""),
-         gender = str_c(sort(c(str_sub(as.character(judge_gender), 1, 1), 
-                               str_sub(as.character(judge_gender2), 1, 1), 
-                               str_sub(as.character(judge_gender3), 1, 1)), decreasing = TRUE), 
-                        collapse = "")) %>%
-  mutate(gender=  factor(gender, levels = c("MMM", "MMF", "MFF")) ) %>%
-  ungroup() %>%
+data_cleanCE<- data_cleanCE %>% group_by(chamber_id) %>%
   group_by(chamber_id) %>%
   summarize(
     gender=first(gender), uni=first(uni), background=first(background), var_yob=max(var_yob),average_yob=max(average_yob),

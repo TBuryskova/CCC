@@ -19,6 +19,7 @@ data_cleanCE <- read_rds("data_cleanCE.rds")
 ########### Regressions fixed effects only ##################  
 
 # Regressing the chamber fixed effect on the characteristics of the chamber
+data_cleanCE<- data_cleanCE %>% group_by(chamber_id) %>% filter(n()>100) %>% ungroup()
 
 length_proceeding <- lm(FE_lp~ average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, data_cleanCE)
 

@@ -20,17 +20,17 @@ data_clean <- read_rds("data_clean.rds")
 
 n_chambers <- data_clean %>% summarise(n_distinct(chamber_id))
 
-full_model_length_proceeding <- lm(length_proceeding~chamber_id+year_decision
+full_model_length_proceeding <- lm(length_proceeding~chamber_id+judge
                                    , data_clean)
-reduced_model_length_proceeding <- lm(length_proceeding~year_decision, data_clean)
+reduced_model_length_proceeding <- lm(length_proceeding~judge, data_clean)
 
 anova(reduced_model_length_proceeding, full_model_length_proceeding)
 
-full_model_length_proceedingC <- lm(length_proceeding~chamber_id+year_decision+type_proceedings+importance+n_applicants+controversial+
+full_model_length_proceedingC <- lm(length_proceeding~chamber_id+judge+year_decision+type_proceedings+importance+n_applicants+controversial+
                    n_disputed_act +
                    n_concerned_act + n_concerned_cact  +
                  n_topicsc, data_clean)
-reduced_model_length_proceedingC <- lm(length_proceeding~year_decision+type_proceedings+importance+n_applicants+controversial+
+reduced_model_length_proceedingC <- lm(length_proceeding~year_decision+judge+type_proceedings+importance+n_applicants+controversial+
                       n_disputed_act +
                       n_concerned_act + n_concerned_cact +
                        n_topicsc, data_clean)
@@ -38,17 +38,17 @@ anova(reduced_model_length_proceedingC, full_model_length_proceedingC)
 
 
 
-full_model_outcome <- lm(outcome~chamber_id+year_decision
+full_model_outcome <- lm(outcome~chamber_id+judge
                          , data=data_clean)
-reduced_model_outcome <- lm(outcome~year_decision, data_clean)
+reduced_model_outcome <- lm(outcome~judge, data_clean)
 
 anova(reduced_model_outcome, full_model_outcome)
 
-full_model_outcomeC <- lm(outcome~chamber_id+year_decision+type_proceedings+importance+n_applicants+controversial+
+full_model_outcomeC <- lm(outcome~chamber_id+judge+type_proceedings+importance+n_applicants+controversial+
                                       n_disputed_act +
                                       n_concerned_act + n_concerned_cact  +
                                       n_topicsc, data_clean)
-reduced_model_outcomeC <- lm(outcome~year_decision+type_proceedings+importance+n_applicants+controversial+
+reduced_model_outcomeC <- lm(outcome~type_proceedings+judge+importance+n_applicants+controversial+
                                          n_disputed_act +
                                          n_concerned_act + n_concerned_cact +
                                          n_topicsc, data_clean)
@@ -57,18 +57,18 @@ anova(reduced_model_outcomeC, full_model_outcomeC)
 
 
 
-full_model_cited_per_year <- lm(cited_per_year~chamber_id
+full_model_cited_per_year <- lm(cited_per_year~chamber_id+judge
                                 , data_clean)
-reduced_model_cited_per_year <- lm(cited_per_year~year_decision
+reduced_model_cited_per_year <- lm(cited_per_year~judge
                                    , data_clean)
 
 anova(reduced_model_cited_per_year, full_model_cited_per_year)
 
-full_model_cited_per_yearC <- lm(cited_per_year~chamber_id+year_decision+type_proceedings+importance+n_applicants+controversial+
+full_model_cited_per_yearC <- lm(cited_per_year~chamber_id+judge+year_decision+type_proceedings+importance+n_applicants+controversial+
                                       n_disputed_act +
                                       n_concerned_act + n_concerned_cact  +
                                       n_topicsc, data_clean)
-reduced_model_cited_per_yearC <- lm(cited_per_year~year_decision+type_proceedings+importance+n_applicants+controversial+
+reduced_model_cited_per_yearC <- lm(cited_per_year~year_decision+judge+type_proceedings+importance+n_applicants+controversial+
                                          n_disputed_act +
                                          n_concerned_act + n_concerned_cact +
                                          n_topicsc, data_clean)
