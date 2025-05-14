@@ -58,4 +58,8 @@ judge_effects_cpy <- data.frame(
 
 data_cleanJE <- left_join(data_cleanJE,judge_effects_cpy, by="judge")
 
+
 saveRDS(data_cleanJE, file="data_cleanJE.rds")
+
+
+

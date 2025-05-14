@@ -30,7 +30,7 @@ find_initial_colleagues <- function(judge_row, full_data) {
   
   if (nrow(colleagues) == 0) return(NA)
   
-  return(colleagues$judge_id)
+  return(c(colleagues$judge_id))
 }
 
 # Apply the function
@@ -43,3 +43,34 @@ initial <- chambers %>%
   group_by(judge_id) %>%
   filter(start_date == min(start_date)) %>%
   ungroup()
+
+ccc_judges <- read_rds("../data/rds/ccc_judges.rds")
+
+
+judges <- ccc_judges %>% group_by(judge_id) %>%
+  summarise(judge_term_start=min(ymd(judge_term_start)),
+            judge_term_end=max(ymd(judge_term_end)),
+            judge_reelection=max(judge_reelection)) %>%
+  ungroup() %>%
+  left_join(ccc_judges %>% select(judge_id,
+                                  judge_yob,judge_gender, judge_uni, judge_degree, judge_profession), by=join_by(judge_id),multiple="first")
+
+initial<- initial %>%
+  unnest_longer(initial_colleagues, values_to = "colleague_id")
+
+initial <- initial %>%
+  left_join(judges, by = c("colleague_id" = "judge_id")) 
+
+initial <- initial %>% group_by(judge_id) %>%
+  mutate(average_yob=mean(judge_yob),
+         var_yob=var(judge_yob) )%>%
+  mutate(colleague_background = paste0(sort(str_sub(judge_profession, 1, 1)), collapse = ""),
+         colleague_uni = paste0(sort(str_sub(judge_uni, 1, 1)), collapse = ""),
+         colleague_gender = paste0(sort(str_sub(judge_gender, 1, 1)), collapse = ""),
+         colleague_distinct_backgrounds=length(unique(judge_profession)),
+         colleague_scholar=(any(judge_profession=="scholar")),
+         colleague_distinct_uni=length(unique(judge_uni)) )%>%
+  ungroup() 
+
+saveRDS(initial, "initial.rds")
+
