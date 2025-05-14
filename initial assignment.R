@@ -62,15 +62,14 @@ initial <- initial %>%
   left_join(judges, by = c("colleague_id" = "judge_id")) 
 
 initial <- initial %>% group_by(judge_id) %>%
-  mutate(average_yob=mean(judge_yob),
-         var_yob=var(judge_yob) )%>%
-  mutate(colleague_background = paste0(sort(str_sub(judge_profession, 1, 1)), collapse = ""),
-         colleague_uni = paste0(sort(str_sub(judge_uni, 1, 1)), collapse = ""),
-         colleague_gender = paste0(sort(str_sub(judge_gender, 1, 1)), collapse = ""),
-         colleague_distinct_backgrounds=length(unique(judge_profession)),
-         colleague_scholar=(any(judge_profession=="scholar")),
-         colleague_distinct_uni=length(unique(judge_uni)) )%>%
-  ungroup() 
+  summarise(average_yob=mean(judge_yob),
+         var_yob=var(judge_yob),
+         background = paste0(sort(str_sub(judge_profession, 1, 1)), collapse = ""),
+         uni = paste0(sort(str_sub(judge_uni, 1, 1)), collapse = ""),
+         gender = paste0(sort(str_sub(judge_gender, 1, 1)), collapse = ""),
+         distinct_backgrounds=length(unique(judge_profession)),
+         scholar=(any(judge_profession=="scholar")),
+         distinct_uni=length(unique(judge_uni)))
 
 saveRDS(initial, "initial.rds")
 

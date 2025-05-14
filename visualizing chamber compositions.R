@@ -25,7 +25,7 @@ ylab("judge") +
   labs(color="chamber")
 
 ggplot(data_basic ) +
-  geom_point(aes(x=date_submission, y=judge, color=formation))
+  geom_point(aes(x=date_submission, y=judge, color=formation)) +
   geom_point(aes(x=date_submission, y=subjudgeA, color=formation), alpha=0.1) +
   geom_point(aes(x=date_submission, y=subjudgeB, color=formation), alpha=0.1) +
   ylab("judge")  +
