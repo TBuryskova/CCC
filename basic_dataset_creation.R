@@ -39,7 +39,7 @@ data_basic <- ccc_metadata %>%
   filter(formation!="Plenum") %>% # filter away plenary decisions
   rowwise() %>%
   mutate(
-   case_id=str_replace_all(case_id," ",""),
+    case_id=str_replace_all(case_id," ",""),
     chamber_id = paste(
       sort(composition$judge_id[1:3]), # Extract the first three `judge_id`s
       collapse = ""
@@ -52,7 +52,7 @@ data_basic <- ccc_metadata %>%
     type_verdict2=type_verdict[2],
     type_verdict3=type_verdict[3],
     final_verdict=type_verdict[[length(type_verdict)]],
-     disputed_act1=disputed_act[1],
+    disputed_act1=disputed_act[1],
     disputed_act2=disputed_act[2],
     disputed_act3=disputed_act[3],
     n_disputed_act=length(disputed_act),
@@ -73,14 +73,15 @@ data_basic <- ccc_metadata %>%
     ))))
   ) %>%  
   ungroup() %>%
-  filter(str_length(chamber_id)>9) %>% # filter away cases decided only by the judge-rapporteur (rejected)
+  filter(str_length(chamber_id)==12) %>% # filter away cases decided only by the judge-rapporteur (rejected)
   mutate(year_submission=year(ymd(date_submission)) ) %>%
   mutate(         has_popular_name=!is.na(popular_name)) %>%
   mutate(outcome=(outcome=="granted")) %>%
   mutate(length_proceeding=case_when(length_proceeding<0 ~ NA,
                                      TRUE~length_proceeding)) %>%
-  mutate(  n_citations = map_int(citations, ~ length(.x$citations[[1]])),
-)
+  mutate(  n_citations = map_int(citations, ~ length(.x))  )
+
+data_basic <- data_basic %>%  filter(ymd(date_submission)>=ymd("2016-01-01")) 
 
 case_citations_count <- ccc_metadata %>%
   unnest(citations) %>%
@@ -89,76 +90,55 @@ case_citations_count <- ccc_metadata %>%
   rename(case_id=citations) %>%
   mutate(case_id=str_replace_all(case_id," ","")) 
 
-data_basic <- data_basic %>% left_join(case_citations_count, by =join_by(case_id))
+data_basic <- data_basic %>% left_join(case_citations_count, by =join_by(case_id), multiple="first")
 
 data_basic <- data_basic %>% mutate(cited=case_when(!is.na(cited) ~ cited,
                                                     TRUE ~ 0)) %>%
   mutate(cited_per_year=cited/time_length(difftime("2025-01-01", date_decision), "years"))
 
 judges <- ccc_judges %>% group_by(judge_id) %>%
-summarise(judge_term_start=min(ymd(judge_term_start)),
-          judge_term_end=max(ymd(judge_term_end)),
-          judge_reelection=max(judge_reelection)) %>%
+  summarise(judge_term_start=min(ymd(judge_term_start)),
+            judge_term_end=max(ymd(judge_term_end)),
+            judge_reelection=max(judge_reelection)) %>%
   ungroup() %>%
   left_join(ccc_judges %>% select(judge_id,judge_name,judge_yob,judge_gender, judge_uni, judge_degree, judge_profession), by=join_by(judge_id),multiple="first") %>%
   mutate(official1623=case_when(judge_id %in% c("J:41","J:40","J:42") ~ TRUE,
                                 TRUE ~ FALSE))  # Tomkova, Rychetsky, Fenyk od srpna 2013 do kvetna 2023 
 
+
+data_basic <- data_basic %>% pivot_longer(cols=c(judge1,judge2,judge3),
+                                          names_to = "name", values_to="judge"
+)
+
+
 data_basic <- data_basic %>% 
-  left_join(judges, by=c("judge1"="judge_id"), suffix=c("", "1")) %>%
-  left_join(judges, by=c("judge2"="judge_id"), suffix=c("", "2")) %>%
-  left_join(judges, by=c("judge3"="judge_id"), suffix=c("", "3"))
+  left_join(judges, by=c("judge"="judge_id")) 
 
 data_basic <- data_basic %>%
+  group_by(doc_id) %>%
   mutate(unresolved_rotation=case_when(ymd(date_submission)<ymd("2018-01-01") & ymd(date_decision)>ymd("2019-12-31") ~ TRUE,
                                        ymd(date_submission)<ymd("2016-01-01") & ymd(date_decision)>ymd("2017-12-31") ~ TRUE,
                                        TRUE ~ FALSE
-
+                                       
   ),
-  judge_age =  year(ymd(date_submission))-judge_yob,
-  judge_age2 =  year(ymd(date_submission))-judge_yob2,
-  judge_age3 =  year(ymd(date_submission))-judge_yob3,
-
-         )  %>%
-  mutate(average_yob=(judge_yob+judge_yob+judge_yob3)/3,
-         var_yob=(judge_yob^2+judge_yob2^2+judge_yob3^2)/3-(judge_yob+judge_yob2+judge_yob3)^2/9) %>%
-  rowwise() %>%
-  mutate(background = str_c(sort(c(str_sub(judge_profession, 1, 1), 
-                                   str_sub(judge_profession2, 1, 1), 
-                                   str_sub(judge_profession3, 1, 1))), 
-                            collapse = ""),
-         uni = str_c(sort(c(str_sub(as.character(judge_uni), 1, 1), 
-                            str_sub(as.character(judge_uni2), 1, 1), 
-                            str_sub(as.character(judge_uni3), 1, 1))), 
-                     collapse = ""),
-         gender = str_c(sort(c(str_sub(as.character(judge_gender), 1, 1), 
-                               str_sub(as.character(judge_gender2), 1, 1), 
-                               str_sub(as.character(judge_gender3), 1, 1)), decreasing = TRUE), 
-                        collapse = ""),
-         distinct_backgrounds=length(unique(c(judge_profession, judge_profession2, judge_profession3))),
-         scholar=(judge_profession=="scholar"| judge_profession2=="scholar"| judge_profession3=="scholar"),
-         distinct_uni=length(unique(c(judge_uni, judge_uni2, judge_uni3)))
+  )  %>%
+  mutate(average_yob=mean(judge_yob),
+         var_yob=var(judge_yob) )%>%
+  mutate(background = paste0(sort(str_sub(judge_profession, 1, 1)), collapse = ""),
+         uni = paste0(sort(str_sub(judge_uni, 1, 1)), collapse = ""),
+         gender = paste0(sort(str_sub(judge_gender, 1, 1)), collapse = ""),
+         distinct_backgrounds=length(unique(judge_profession)),
+         scholar=(any(judge_profession=="scholar")),
+         distinct_uni=length(unique(judge_uni))
   ) %>%
-  mutate(gender=  factor(gender, levels = c("MMM", "MMF", "MFF")) ) %>%
   ungroup() %>%
   mutate(same_background=(distinct_backgrounds==1),
          all_different_background=(distinct_backgrounds==3),
          same_uni=(distinct_uni==1),
          all_different_uni=(distinct_uni==3)
-  )
+  ) %>%
+  mutate(gender=factor(gender, levels=c("MMM","FMM", "FFM","FFF")))
 
-  
-# 
-# sample1623 <- data_basic %>% filter(official1623==FALSE,
-#                                   official16232==FALSE,
-#                                   official16233==FALSE, !unresolved_rotation) %>%
-#  filter(ymd(date_submission)>=ymd("2016-01-01"),
-#              ymd(date_submission)<=ymd("2023-01-01")
-#   ) 
-
-data_basic <- data_basic %>%  filter(ymd(date_submission)>=ymd("2016-01-01")) 
-
-# saveRDS(sample1623, "sample1623.rds")
 
 #merge with webscrapped
 chambers <- read.csv("../data/csv/chamber compositions.csv")
@@ -206,12 +186,13 @@ decisions_with_substitutes <- data_basic %>%
 
 data_basic <- data_basic %>%
   left_join(decisions_with_judges, by = c("doc_id", "formation", "date_submission")) %>%
-  left_join(decisions_with_substitutes, by = c("doc_id", "formation", "date_submission")) %>%
-  rowwise() %>%
-  mutate(composition_ok =  if_all(c(judge1, judge2, judge3), ~ . %in% c(asjudge1, asjudge2, asjudge3, subjudgeA, subjudgeB))
-  ) %>% ungroup()
+  left_join(decisions_with_substitutes, by = c("doc_id", "formation", "date_submission")) 
 
-data_clean <- data_basic   %>% filter(composition_ok)
+data_basic <- data_basic %>% group_by(doc_id) %>%
+  mutate(composition_ok = all(judge %in% unique(c(asjudge1, asjudge2, asjudge3, subjudgeA, subjudgeB)))) %>%
+  ungroup()
+
+data_clean <- data_basic %>% filter(composition_ok)
 
 saveRDS(data_basic, "data_basic.rds")
 saveRDS(data_clean, "data_clean.rds")
