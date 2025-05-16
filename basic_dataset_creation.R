@@ -169,36 +169,38 @@ data_basic <- data_basic %>%
                              formation=="Fourth Chamber" ~ "4th"))
 
 decisions_with_judges <- data_basic %>%
-  left_join(chambers, by = c("formation" = "chamber_number")) %>%
+  left_join(chambers, by = c("judge" = "judge_id")) %>%
   filter(ymd(date_submission) >= ymd(start_date) & ymd(date_submission) <= ymd(end_date)) %>%
   group_by(doc_id, formation, date_submission) %>%
   summarise(
-    judges = list(sort(unique(judge_id[!is.na(judge_id)]))),
+    judges = list(sort(unique(judge[!is.na(judge)]))),
     asjudge1 = judges[[1]][1],
     asjudge2 = judges[[1]][2],
     asjudge3 = judges[[1]][3],
     .groups = "drop"
   )
 # 
-# decisions_with_substitutes <- data_basic %>%
-#   left_join(substitute, by = c("formation" = "chamber_number")) %>%
-#   filter(date_submission >= start_date & (date_submission) <= end_date) %>%
-#   group_by(doc_id, formation, date_submission) %>%
-#   summarise(subjudgeA = sort(unique(judge_id), na.last = NA)[1],
-#             subjudgeB = sort(unique(judge_id), na.last = NA)[2],
-#             .groups = "drop"
-#   ) %>%
-#   ungroup()
+decisions_with_substitutes <- data_basic %>%
+  left_join(substitute, by = c("judge" = "judge_id")) %>%
+  filter(ymd(date_submission) >= ymd(start_date) & ymd(date_submission) <= ymd(end_date)) %>%
+  group_by(doc_id, formation, date_submission) %>%
+  summarise(subjudgeA = sort(unique(judge), na.last = NA)[1],
+            subjudgeB = sort(unique(judge), na.last = NA)[2],
+            .groups = "drop"
+  ) %>%
+  ungroup()
 # 
-# data_basic <- data_basic %>%
-#   left_join(decisions_with_judges, by = c("doc_id", "formation", "date_submission")) %>%
-#   left_join(decisions_with_substitutes, by = c("doc_id", "formation", "date_submission")) 
-# 
-# data_basic <- data_basic %>% group_by(doc_id) %>%
-#   mutate(composition_ok = all(judge %in% unique(c(asjudge1, asjudge2, asjudge3, subjudgeA, subjudgeB)))) %>%
-#   ungroup()
-# 
-# data_clean <- data_basic %>% filter(composition_ok)
+data_basic <- data_basic %>%
+  left_join(decisions_with_judges, by = c("doc_id", "formation", "date_submission"))
+
+data_basic <- data_basic %>%
+  left_join(decisions_with_substitutes, by = c("doc_id", "formation", "date_submission"))
+
+data_basic <- data_basic %>% group_by(doc_id) %>%
+  mutate(composition_ok = all(judge %in% unique(c(asjudge1, asjudge2, asjudge3, subjudgeA, subjudgeB)))) %>%
+  ungroup()
+
+data_clean <- data_basic %>% filter(composition_ok)
 
 saveRDS(data_basic, "data_basic.rds")
 saveRDS(data_clean, "data_clean.rds")
