@@ -11,6 +11,8 @@ library(xtable)
 library(igraph)
 library(ggraph)
 library(tidygraph)
+library(data.table)
+
 library(gganimate)
 library(gifski)
 
@@ -62,7 +64,6 @@ p <- ggraph(layout_static) +
   geom_edge_link(aes(width = n_cases_together, color = prop_ok), alpha = 0.3) +
   geom_node_point(size = 3, color = "black") +
   geom_node_text(aes(label = name), size = 5, repel = FALSE) +
-  scale_edge_color_gradient2(low = "red", mid = "gray", high = "green", midpoint = 0.5) +
   scale_edge_width(range = c(0.3, 2)) +
   theme_void() +
   labs(title = "Judicial Co-decision Network: {frame_time}") +
@@ -70,7 +71,7 @@ p <- ggraph(layout_static) +
   ease_aes("linear")
 
 animate(p, nframes = length(all_months), fps = 2, width = 800, height = 600,
-        renderer = gifski_renderer("my_animation.gif"))
+        renderer = gifski_renderer("chamber_basic.gif"))
 
 # ---------------------------- CLEAN ----------------------------
 
@@ -117,7 +118,7 @@ p_clean <- ggraph(layout_static_clean) +
   ease_aes("linear")
 
 animate(p_clean, nframes = length(all_months_clean), fps = 2, width = 800, height = 600,
-        renderer = gifski_renderer("my_animation_clean.gif"))
+        renderer = gifski_renderer("chamber_clean.gif"))
 
 #----------assigned#
 
@@ -132,7 +133,9 @@ chambers <- chambers %>%
     end_date = dmy(end_date)) %>% 
   mutate(end_date=case_when(is.na(end_date)~ dmy("31/12/2024"),
                             TRUE ~ end_date) )%>%
-  rename(chamber_number=chamber_id)
+  rename(chamber_number=chamber_id)  %>%
+  mutate(chamber_number = str_trim(chamber_number))
+
 chambers_monthly <- chambers %>%
   mutate(
     date_seq = map2(start_date, end_date, ~ seq(from = floor_date(.x, "month"),
@@ -217,5 +220,5 @@ p <- ggplot() +
   labs(title = 'Chamber network — {frame_time}')
 
 # E. render to GIF ----------------------------------------------------------
-anim <- animate(p, renderer = gifski_renderer("chamber_network.gif"),
+anim <- animate(p, renderer = gifski_renderer("assigned.gif"),
                 width = 800, height =600, fps = 2)
