@@ -10,6 +10,7 @@ library(stringr)
 library(tidyverse)
 library(purrr)
 library(xtable)
+library(data.table)
 
 ccc_compositions <- read_rds("../data/rds/ccc_compositions.rds")
 ccc_disputed_acts <- read_rds("../data/rds/ccc_disputed_acts.rds")
@@ -76,6 +77,8 @@ data_basic <- ccc_metadata %>%
   ungroup() %>%
   filter(str_length(chamber_id)==12) %>% # filter away cases decided only by the judge-rapporteur (rejected)
   mutate(year_submission=year(ymd(date_submission)) ) %>%
+  mutate(date_submission=(ymd(date_submission)) ) %>%
+  
   mutate(         has_popular_name=!is.na(popular_name)) %>%
   mutate(outcome=(outcome=="granted")) %>%
   mutate(length_proceeding=case_when(length_proceeding<0 ~ NA,
@@ -152,7 +155,9 @@ chambers <- chambers %>%
     end_date = dmy(end_date)) %>% 
   mutate(end_date=case_when(is.na(end_date)~ dmy("31/12/2024"),
                             TRUE ~ end_date) )%>%
-  rename(chamber_number=chamber_id)
+  rename(formation=chamber_id) %>%
+  rename(asjudge_id=judge_id) 
+  
 
 substitute <- substitute %>%
   mutate(
@@ -160,7 +165,9 @@ substitute <- substitute %>%
     end_date = dmy(end_date)) %>% 
   mutate(end_date=case_when(is.na(end_date)~ dmy("31/12/2024"),
                             TRUE ~ end_date) )%>%
-  rename(chamber_number=chamber_id)
+  rename(formation=chamber_id) %>%
+  rename(subjudge_id=judge_id) 
+
 
 data_basic <- data_basic %>% 
   mutate(formation=case_when(formation=="First Chamber" ~ "1st",
@@ -168,33 +175,45 @@ data_basic <- data_basic %>%
                              formation=="Third Chamber" ~ "3rd",
                              formation=="Fourth Chamber" ~ "4th"))
 
+chambers_daily <- chambers %>%
+  mutate(date_seq = map2(start_date, end_date,
+                         ~ seq(.x, .y, by = "day"))) %>%
+  unnest(date_seq) %>% select(-start_date,-end_date) %>%
+  mutate(formation = str_trim(formation))
+
+
+substitute_daily <- substitute %>%
+  mutate(date_seq = ymd(map2(start_date, end_date,
+                         ~ seq(.x, .y, by = "day")))) %>%
+  unnest(date_seq) %>% select(-start_date,-end_date) %>%
+  mutate(formation = str_trim(formation))
+
+
 decisions_with_judges <- data_basic %>%
-  left_join(chambers, by = c("judge" = "judge_id")) %>%
-  filter(ymd(date_submission) >= ymd(start_date) & ymd(date_submission) <= ymd(end_date)) %>%
-  group_by(doc_id, formation, date_submission) %>%
+  left_join(chambers_daily, by = c("formation", "date_submission"="date_seq")) %>%
+  group_by(doc_id) %>%
   summarise(
-    judges = list(sort(unique(judge[!is.na(judge)]))),
-    asjudge1 = judges[[1]][1],
-    asjudge2 = judges[[1]][2],
-    asjudge3 = judges[[1]][3],
+    asjudges = list(sort(unique(asjudge_id[!is.na(asjudge_id)]))),
+    asjudge1 = asjudges[[1]][1],
+    asjudge2 = asjudges[[1]][2],
+    asjudge3 = asjudges[[1]][3],
     .groups = "drop"
   )
 # 
 decisions_with_substitutes <- data_basic %>%
-  left_join(substitute, by = c("judge" = "judge_id")) %>%
-  filter(ymd(date_submission) >= ymd(start_date) & ymd(date_submission) <= ymd(end_date)) %>%
-  group_by(doc_id, formation, date_submission) %>%
-  summarise(subjudgeA = sort(unique(judge), na.last = NA)[1],
-            subjudgeB = sort(unique(judge), na.last = NA)[2],
+  left_join(substitute_daily, by = c("formation", "date_submission"="date_seq")) %>%
+  group_by(doc_id) %>%
+  summarise(subjudgeA = sort(unique(subjudge_id), na.last = NA)[1],
+            subjudgeB = sort(unique(subjudge_id), na.last = NA)[2],
             .groups = "drop"
   ) %>%
   ungroup()
 # 
 data_basic <- data_basic %>%
-  left_join(decisions_with_judges, by = c("doc_id", "formation", "date_submission"))
+  left_join(decisions_with_judges, by = c("doc_id"))
 
 data_basic <- data_basic %>%
-  left_join(decisions_with_substitutes, by = c("doc_id", "formation", "date_submission"))
+  left_join(decisions_with_substitutes, by = c("doc_id"))
 
 data_basic <- data_basic %>% group_by(doc_id) %>%
   mutate(composition_ok = all(judge %in% unique(c(asjudge1, asjudge2, asjudge3, subjudgeA, subjudgeB)))) %>%
