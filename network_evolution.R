@@ -81,7 +81,6 @@ p_basic <- ggraph(layout_basic) +
   geom_node_point(size = node_point_size, color = node_color) +
   geom_node_text(aes(label = name), size = node_text_size, vjust = 2, hjust=0.45) +
   scale_edge_width(range = edge_width_range) +
-  scale_edge_color_gradient(low = "orangered", high = "darkgreen", name = "Share OK") +
   base_theme +
   labs(title = "Judicial Co-decision Network (BASIC): {frame_time}") +
   transition_time(month) +
@@ -94,7 +93,7 @@ animate(p_basic,
         fps       = 2,
         width     = 800,
         height    = 600,
-        renderer  = gifski_renderer("chamber_basic.gif"))
+        renderer  = gifski_renderer("network_basic.gif"))
 
 ## ---- 4. CLEAN data set -------------------------------------------------------
 data_clean <- read_rds("data_clean.rds") %>%
@@ -148,7 +147,7 @@ animate(p_clean,
         fps       = 2,
         width     = 800,
         height    = 600,
-        renderer  = gifski_renderer("chamber_clean.gif"))
+        renderer  = gifski_renderer("network_clean.gif"))
 
 ## ---- 5. ASSIGNED / Chamber composition --------------------------------------
 chambers <- read.csv("../data/csv/chamber compositions.csv") %>%
@@ -215,4 +214,4 @@ animate(p_assigned,
         fps       = 2,
         width     = 800,
         height    = 600,
-        renderer  = gifski_renderer("assigned.gif"))
+        renderer  = gifski_renderer("network_assigned.gif"))

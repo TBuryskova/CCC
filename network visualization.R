@@ -53,6 +53,7 @@ ggraph(g, layout = "stress") +
   geom_node_text(aes(label = name), repel = TRUE, size = 3) +
   scale_edge_width(range = c(0.5, 3)) +
   theme_minimal() +
+  theme(legend.position="bottom") +
   ggtitle("Judicial Co-decision Network (Edge color = % Composition OK)")
 ggsave("network_basic.png")
 
@@ -88,5 +89,6 @@ ggraph(g, layout = "stress") +
   geom_node_text(aes(label = name), repel = TRUE, size = 3) +
   scale_edge_width(range = c(0.5, 3)) +
   theme_minimal() +
+  theme(legend.position="bottom") +
   ggtitle("Judicial Co-decision Network (CLEAN)")
 ggsave("network_clean.png")
