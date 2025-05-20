@@ -25,9 +25,9 @@ library(gifski)
 get_surname <- function(x) str_trim(word(x, -1))   # “John Van Doe” → “Doe”
 
 ## ---- 2. Global design constants ---------------------------------------------
-# Theme & aesthetics applied to every plot
 base_theme <- theme_void() +
-  theme(plot.title = element_text(hjust = 0.5, size = 16))
+  theme(plot.title = element_text(hjust = 0.5, size = 16),
+        legend.position = "bottom")
 
 node_point_size  <- 3
 node_text_size   <- 5
@@ -40,12 +40,11 @@ edge_gray        <- "gray50"
 data_basic <- read_rds("data_basic.rds") %>%
   mutate(judge_name = get_surname(judge_name))
 
-## 3a. build pair-by-month table
 judge_pairs_time <- data_basic %>%
   select(doc_id, judge_name, composition_ok, date_submission) %>%
   mutate(month = floor_date(date_submission, "month")) %>%
   group_by(doc_id) %>%
-  filter(n() == 3) %>%                                  # only complete 3-judge panels
+  filter(n() == 3) %>%
   summarise(
     pairs          = list(as_tibble(t(combn(judge_name, 2)))),
     month          = first(month),
@@ -57,12 +56,11 @@ judge_pairs_time <- data_basic %>%
 
 all_months <- sort(unique(judge_pairs_time$month))
 
-## 3b. cumulative edge list
 edges_cumulative <- map_dfr(all_months, function(m) {
   judge_pairs_time %>%
     filter(month <= m) %>%
     rowwise() %>%
-    mutate(j1 = min(judge1, judge2),   # alphabetical to avoid direction
+    mutate(j1 = min(judge1, judge2),
            j2 = max(judge1, judge2)) %>%
     ungroup() %>%
     group_by(j1, j2) %>%
@@ -77,19 +75,19 @@ nodes_basic <- tibble(name = unique(c(edges_cumulative$j1, edges_cumulative$j2))
 g_basic     <- tbl_graph(nodes = nodes_basic, edges = edges_cumulative, directed = FALSE)
 layout_basic <- create_layout(g_basic, layout = "stress")
 
-## 3c. animation
 p_basic <- ggraph(layout_basic) +
   geom_edge_link(aes(width = n_cases_together, color = prop_ok),
                  alpha = edge_alpha) +
   geom_node_point(size = node_point_size, color = node_color) +
-  geom_node_text(aes(label = name), size = node_text_size, vjust = 2, hjust=0) +
+  geom_node_text(aes(label = name), size = node_text_size, vjust = 2, hjust=0.45) +
   scale_edge_width(range = edge_width_range) +
-  scale_edge_color_gradient(low = "orangered", high = "darkgreen",
-                            name = "Share OK") +
+  scale_edge_color_gradient(low = "orangered", high = "darkgreen", name = "Share OK") +
   base_theme +
   labs(title = "Judicial Co-decision Network (BASIC): {frame_time}") +
   transition_time(month) +
-  ease_aes("linear")
+  ease_aes("linear") +
+  guides(color = guide_colorbar(title.position = "top"),
+         width = guide_legend(title.position = "top"))
 
 animate(p_basic,
         nframes   = length(all_months),
@@ -102,7 +100,6 @@ animate(p_basic,
 data_clean <- read_rds("data_clean.rds") %>%
   mutate(judge_name = get_surname(judge_name))
 
-## 4a. pair table
 judge_pairs_time_clean <- data_clean %>%
   select(doc_id, judge_name, composition_ok, date_submission) %>%
   mutate(month = floor_date(date_submission, "month")) %>%
@@ -130,24 +127,21 @@ edges_cumulative_clean <- map_dfr(all_months_clean, function(m) {
     mutate(month = m)
 })
 
-nodes_clean  <- tibble(name = unique(c(edges_cumulative_clean$j1,
-                                       edges_cumulative_clean$j2)))
-g_clean      <- tbl_graph(nodes = nodes_clean,
-                          edges = edges_cumulative_clean,
-                          directed = FALSE)
+nodes_clean  <- tibble(name = unique(c(edges_cumulative_clean$j1, edges_cumulative_clean$j2)))
+g_clean      <- tbl_graph(nodes = nodes_clean, edges = edges_cumulative_clean, directed = FALSE)
 layout_clean <- create_layout(g_clean, layout = "stress")
 
-## 4b. animation
 p_clean <- ggraph(layout_clean) +
   geom_edge_link(aes(width = n_cases_together),
                  alpha = edge_alpha, color = edge_gray) +
   geom_node_point(size = node_point_size, color = node_color) +
-  geom_node_text(aes(label = name), size = node_text_size, vjust = 2, hjust=0) +
+  geom_node_text(aes(label = name), size = node_text_size, vjust = 2, hjust=0.45) +
   scale_edge_width(range = edge_width_range) +
   base_theme +
   labs(title = "Judicial Co-decision Network (CLEAN): {frame_time}") +
   transition_time(month) +
-  ease_aes("linear")
+  ease_aes("linear") +
+  guides(width = guide_legend(title.position = "top"))
 
 animate(p_clean,
         nframes   = length(all_months_clean),
@@ -164,7 +158,6 @@ chambers <- read.csv("../data/csv/chamber compositions.csv") %>%
   mutate(end_date = coalesce(end_date, dmy("31/12/2024")),
          chamber_number = str_trim(chamber_id))
 
-## 5a. expand to month grid
 chambers_monthly <- chambers %>%
   mutate(date_seq = map2(start_date, end_date,
                          ~ seq(from = floor_date(.x, "month"),
@@ -172,7 +165,6 @@ chambers_monthly <- chambers %>%
                                by   = "month"))) %>%
   unnest(date_seq)
 
-## 5b. build edge list month-by-month from Jan-2016
 ani_start <- as_date("2016-01-01")
 
 edges_monthly <- chambers_monthly %>%
@@ -190,14 +182,11 @@ edges_monthly <- chambers_monthly %>%
          to   = map_chr(pairs, 2)) %>%
   select(date, from, to)
 
-## 5c. stable Fruchterman-Reingold layout
-layout_graph <- graph_from_data_frame(distinct(edges_monthly, from, to),
-                                      directed = FALSE)
+layout_graph <- graph_from_data_frame(distinct(edges_monthly, from, to), directed = FALSE)
 coords <- as.data.frame(layout_with_fr(layout_graph))
 coords$judge_name <- V(layout_graph)$name
 names(coords)[1:2] <- c("x", "y")
 
-## 5d. prepare plotting frames
 edges_plot <- edges_monthly %>%
   left_join(coords,  by = c("from" = "judge_name")) %>%
   rename(x_start = x, y_start = y) %>%
@@ -206,7 +195,6 @@ edges_plot <- edges_monthly %>%
 
 nodes_plot <- tidyr::crossing(coords, date = unique(edges_monthly$date))
 
-## 5e. animation
 p_assigned <- ggplot() +
   geom_segment(data = edges_plot,
                aes(x = x_start, y = y_start, xend = x_end, yend = y_end,
@@ -217,7 +205,7 @@ p_assigned <- ggplot() +
              size = node_point_size, color = "steelblue") +
   geom_text(data = nodes_plot,
             aes(x = x, y = y, label = judge_name),
-            vjust = 2, hjust=0, size = 3) +
+            vjust = 2, hjust=0.45, size = 3) +
   base_theme +
   labs(title = "Chamber Network: {frame_time}") +
   transition_time(date) +
