@@ -51,10 +51,10 @@ ggraph(g, layout = "stress") +
   geom_edge_link(aes(width = n_cases_together, color = prop_composition_ok), alpha = 0.5) +
   geom_node_point(size = 4, color = "black") +
   geom_node_text(aes(label = name), repel = TRUE, size = 3) +
-  scale_edge_color_gradient2(low = "red", mid = "gray", high = "green", midpoint = 0.5) +
   scale_edge_width(range = c(0.5, 3)) +
-  theme_void() +
+  theme_minimal() +
   ggtitle("Judicial Co-decision Network (Edge color = % Composition OK)")
+ggsave("network_basic.png")
 
 
 
@@ -87,5 +87,6 @@ ggraph(g, layout = "stress") +
   geom_node_point(size = 4, color = "black") +
   geom_node_text(aes(label = name), repel = TRUE, size = 3) +
   scale_edge_width(range = c(0.5, 3)) +
-  theme_void() +
-  ggtitle("Judicial Co-decision Network")
+  theme_minimal() +
+  ggtitle("Judicial Co-decision Network (CLEAN)")
+ggsave("network_clean.png")
