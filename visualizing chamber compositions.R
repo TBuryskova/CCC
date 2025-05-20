@@ -10,29 +10,26 @@ library(tidyverse)
 library(purrr)
 library(xtable)
 
-data_basic <- read_rds("data_basic.rds")
-data_clean <- read_rds("data_clean.rds")
+get_surname <- function(x) str_trim(word(x, -1)) 
 
+data_basic <- read_rds("data_basic.rds") %>%
+  mutate(judge_name = get_surname(judge_name)) %>% 
+  filter(!is.na(judge_name))
 
+data_clean <- read_rds("data_clean.rds") %>%
+  mutate(judge_name = get_surname(judge_name)) %>% 
+  filter(!is.na(judge_name))
 
-ggplot(data_clean ) +
-  geom_point(aes(x=date_submission, y=asjudge1, color=formation)) +
-  geom_point(aes(x=date_submission,y=asjudge2, color=formation)) +
-  geom_point(aes(x=date_submission, y=asjudge3, color=formation)) +
-  geom_point(aes(x=date_submission, y=subjudgeA, color=formation), alpha=0.1) +
-  geom_point(aes(x=date_submission, y=subjudgeB, color=formation), alpha=0.1) +
-ylab("judge") +
-  labs(color="chamber")
 
 ggplot(data_basic ) +
-  geom_point(aes(x=date_submission, y=judge, color=formation)) +
+  geom_point(aes(x=date_submission, y=judge_name, color=formation)) +
   geom_point(aes(x=date_submission, y=subjudgeA, color=formation), alpha=0.1) +
   geom_point(aes(x=date_submission, y=subjudgeB, color=formation), alpha=0.1) +
   ylab("judge")  +
 labs(color="chamber")
 
 ggplot(data_clean ) +
-  geom_point(aes(x=date_submission, y=judge, color=formation)) +
+  geom_point(aes(x=date_submission, y=judge_name, color=formation)) +
   geom_point(aes(x=date_submission, y=subjudgeA, color=formation), alpha=0.1) +
   geom_point(aes(x=date_submission, y=subjudgeB, color=formation), alpha=0.1) +
   ylab("judge")  +

@@ -1,88 +1,116 @@
+###############################################################################
+## Unified animated-network plots for three data sets
+## -- copy-paste the whole file and run ----------------------------------------
+###############################################################################
+
+## ---- 0. Libraries -----------------------------------------------------------
 library(dplyr)
+library(tidyr)
+library(purrr)
 library(stringr)
-library(scales)
 library(readr)
 library(lubridate)
-library(stargazer)
-library(tidyr)
-library(tidyverse)
-library(purrr)
-library(xtable)
-library(igraph)
-library(ggraph)
-library(tidygraph)
+library(tibble)
 library(data.table)
 
+library(igraph)
+library(tidygraph)
+library(ggraph)
+
+library(ggplot2)
 library(gganimate)
 library(gifski)
 
-# ---------------------------- BASIC ----------------------------
+## ---- 1. Helper: keep only the surname ---------------------------------------
+get_surname <- function(x) str_trim(word(x, -1))   # “John Van Doe” → “Doe”
 
-data_clean <- read_rds("data_clean.rds")
-data_basic <- read_rds("data_basic.rds") 
+## ---- 2. Global design constants ---------------------------------------------
+# Theme & aesthetics applied to every plot
+base_theme <- theme_void() +
+  theme(plot.title = element_text(hjust = 0.5, size = 16))
 
+node_point_size  <- 3
+node_text_size   <- 5
+edge_alpha       <- 0.40
+edge_width_range <- c(0.3, 2)
+node_color       <- "black"
+edge_gray        <- "gray50"
+
+## ---- 3. BASIC data set -------------------------------------------------------
+data_basic <- read_rds("data_basic.rds") %>%
+  mutate(judge_name = get_surname(judge_name))
+
+## 3a. build pair-by-month table
 judge_pairs_time <- data_basic %>%
   select(doc_id, judge_name, composition_ok, date_submission) %>%
   mutate(month = floor_date(date_submission, "month")) %>%
   group_by(doc_id) %>%
-  filter(n() == 3) %>%
+  filter(n() == 3) %>%                                  # only complete 3-judge panels
   summarise(
-    pairs = list(as_tibble(t(combn(judge_name, 2)))),
-    month = first(month),
+    pairs          = list(as_tibble(t(combn(judge_name, 2)))),
+    month          = first(month),
     composition_ok = mean(composition_ok),
-    .groups = "drop"
+    .groups        = "drop"
   ) %>%
   unnest(pairs) %>%
   rename(judge1 = V1, judge2 = V2)
 
-# All months sorted
 all_months <- sort(unique(judge_pairs_time$month))
 
-# Create cumulative edge data
+## 3b. cumulative edge list
 edges_cumulative <- map_dfr(all_months, function(m) {
   judge_pairs_time %>%
     filter(month <= m) %>%
     rowwise() %>%
-    mutate(j1 = min(judge1, judge2), j2 = max(judge1, judge2)) %>%
+    mutate(j1 = min(judge1, judge2),   # alphabetical to avoid direction
+           j2 = max(judge1, judge2)) %>%
     ungroup() %>%
     group_by(j1, j2) %>%
-    summarise(
-      n_cases_together = n(),
-      prop_ok = mean(composition_ok),
-      .groups = "drop"
-    ) %>%
+    summarise(n_cases_together = n(),
+              prop_ok          = mean(composition_ok),
+              .groups          = "drop") %>%
     mutate(month = m)
 })
 
-all_nodes <- unique(c(edges_cumulative$j1, edges_cumulative$j2))
-nodes_df <- tibble(name = all_nodes)
+nodes_basic <- tibble(name = unique(c(edges_cumulative$j1, edges_cumulative$j2)))
 
-g_dynamic <- tbl_graph(nodes = nodes_df, edges = edges_cumulative, directed = FALSE)
-layout_static <- create_layout(g_dynamic, layout = "stress")
+g_basic     <- tbl_graph(nodes = nodes_basic, edges = edges_cumulative, directed = FALSE)
+layout_basic <- create_layout(g_basic, layout = "stress")
 
-p <- ggraph(layout_static) +
-  geom_edge_link(aes(width = n_cases_together, color = prop_ok), alpha = 0.3) +
-  geom_node_point(size = 3, color = "black") +
-  geom_node_text(aes(label = name), size = 5, repel = FALSE) +
-  scale_edge_width(range = c(0.3, 2)) +
-  theme_void() +
-  labs(title = "Judicial Co-decision Network: {frame_time}") +
+## 3c. animation
+p_basic <- ggraph(layout_basic) +
+  geom_edge_link(aes(width = n_cases_together, color = prop_ok),
+                 alpha = edge_alpha) +
+  geom_node_point(size = node_point_size, color = node_color) +
+  geom_node_text(aes(label = name), size = node_text_size, vjust = 2, hjust=0) +
+  scale_edge_width(range = edge_width_range) +
+  scale_edge_color_gradient(low = "orangered", high = "darkgreen",
+                            name = "Share OK") +
+  base_theme +
+  labs(title = "Judicial Co-decision Network (BASIC): {frame_time}") +
   transition_time(month) +
   ease_aes("linear")
 
-animate(p, nframes = length(all_months), fps = 2, width = 800, height = 600,
-        renderer = gifski_renderer("chamber_basic.gif"))
+animate(p_basic,
+        nframes   = length(all_months),
+        fps       = 2,
+        width     = 800,
+        height    = 600,
+        renderer  = gifski_renderer("chamber_basic.gif"))
 
-# ---------------------------- CLEAN ----------------------------
+## ---- 4. CLEAN data set -------------------------------------------------------
+data_clean <- read_rds("data_clean.rds") %>%
+  mutate(judge_name = get_surname(judge_name))
 
+## 4a. pair table
 judge_pairs_time_clean <- data_clean %>%
   select(doc_id, judge_name, composition_ok, date_submission) %>%
   mutate(month = floor_date(date_submission, "month")) %>%
   group_by(doc_id) %>%
   filter(n() == 3) %>%
   summarise(
-    pairs = list(as_tibble(t(combn(judge_name, 2)))),
-    month = first(month),
+    pairs  = list(as_tibble(t(combn(judge_name, 2)))),
+    month  = first(month),
     .groups = "drop"
   ) %>%
   unnest(pairs) %>%
@@ -94,131 +122,109 @@ edges_cumulative_clean <- map_dfr(all_months_clean, function(m) {
   judge_pairs_time_clean %>%
     filter(month <= m) %>%
     rowwise() %>%
-    mutate(j1 = min(judge1, judge2), j2 = max(judge1, judge2)) %>%
+    mutate(j1 = min(judge1, judge2),
+           j2 = max(judge1, judge2)) %>%
     ungroup() %>%
     group_by(j1, j2) %>%
     summarise(n_cases_together = n(), .groups = "drop") %>%
     mutate(month = m)
 })
 
-all_nodes_clean <- unique(c(edges_cumulative_clean$j1, edges_cumulative_clean$j2))
-nodes_df_clean <- tibble(name = all_nodes_clean)
+nodes_clean  <- tibble(name = unique(c(edges_cumulative_clean$j1,
+                                       edges_cumulative_clean$j2)))
+g_clean      <- tbl_graph(nodes = nodes_clean,
+                          edges = edges_cumulative_clean,
+                          directed = FALSE)
+layout_clean <- create_layout(g_clean, layout = "stress")
 
-g_dynamic_clean <- tbl_graph(nodes = nodes_df_clean, edges = edges_cumulative_clean, directed = FALSE)
-layout_static_clean <- create_layout(g_dynamic_clean, layout = "stress")
-
-p_clean <- ggraph(layout_static_clean) +
-  geom_edge_link(aes(width = n_cases_together), alpha = 0.3) +
-  geom_node_point(size = 3, color = "black") +
-  geom_node_text(aes(label = name, x = x + 0.05, y = y + 0.05), size = 5) +
-  scale_edge_width(range = c(0.3, 2)) +
-  theme_void() +
-  labs(title = "Judicial Co-decision Network: {frame_time}") +
+## 4b. animation
+p_clean <- ggraph(layout_clean) +
+  geom_edge_link(aes(width = n_cases_together),
+                 alpha = edge_alpha, color = edge_gray) +
+  geom_node_point(size = node_point_size, color = node_color) +
+  geom_node_text(aes(label = name), size = node_text_size, vjust = 2, hjust=0) +
+  scale_edge_width(range = edge_width_range) +
+  base_theme +
+  labs(title = "Judicial Co-decision Network (CLEAN): {frame_time}") +
   transition_time(month) +
   ease_aes("linear")
 
-animate(p_clean, nframes = length(all_months_clean), fps = 2, width = 800, height = 600,
-        renderer = gifski_renderer("chamber_clean.gif"))
+animate(p_clean,
+        nframes   = length(all_months_clean),
+        fps       = 2,
+        width     = 800,
+        height    = 600,
+        renderer  = gifski_renderer("chamber_clean.gif"))
 
-#----------assigned#
+## ---- 5. ASSIGNED / Chamber composition --------------------------------------
+chambers <- read.csv("../data/csv/chamber compositions.csv") %>%
+  mutate(judge_name = get_surname(judge_name),
+         start_date = dmy(start_date),
+         end_date   = dmy(end_date)) %>%
+  mutate(end_date = coalesce(end_date, dmy("31/12/2024")),
+         chamber_number = str_trim(chamber_id))
 
-
-
-chambers <- read.csv("../data/csv/chamber compositions.csv")
-
-
-chambers <- chambers %>%
-  mutate(
-    start_date = dmy(start_date),
-    end_date = dmy(end_date)) %>% 
-  mutate(end_date=case_when(is.na(end_date)~ dmy("31/12/2024"),
-                            TRUE ~ end_date) )%>%
-  rename(chamber_number=chamber_id)  %>%
-  mutate(chamber_number = str_trim(chamber_number))
-
+## 5a. expand to month grid
 chambers_monthly <- chambers %>%
-  mutate(
-    date_seq = map2(start_date, end_date, ~ seq(from = floor_date(.x, "month"),
-                                                to = floor_date(.y, "month"),
-                                                by = "month"))
-  ) %>%
+  mutate(date_seq = map2(start_date, end_date,
+                         ~ seq(from = floor_date(.x, "month"),
+                               to   = floor_date(.y, "month"),
+                               by   = "month"))) %>%
   unnest(date_seq)
 
-## 6 ── label monthly chamber composition --------------------------------------
-monthly <- chambers_monthly %>%
-  transmute(date = date_seq,
-            chamber = chamber_number,
-            judge_name = na_if(judge_name, "unappointed")) %>%
-  group_by(date, chamber) %>%
-  arrange(judge_name, .by_group = TRUE) %>%
-  mutate(judge_pos = paste0("judge", row_number())) %>%
-  pivot_wider(names_from = judge_pos,
-              values_from = judge_name) %>%
-  ungroup()
-
-## 7 ── collapse consecutive identical periods -----------------------
-setDT(monthly)[order(chamber, date)]
-monthly[, grp := rleid(chamber, judge1, judge2, judge3)]
-
-chambers_final <- monthly[, 
-                          .(date_start = min(date),
-                            date_end = max(date),
-                            judge1 = judge1[1],
-                            judge2 = judge2[1],
-                            judge3 = judge3[1]),
-                          by = .(chamber, grp)][, grp := NULL][]
-
+## 5b. build edge list month-by-month from Jan-2016
 ani_start <- as_date("2016-01-01")
 
-# A. build an edge list for every 1st of month ≥ ani_start --------------------
 edges_monthly <- chambers_monthly %>%
-  filter(date_seq >= ani_start) %>%
-  filter(judge_name != "unappointed" & !is.na(judge_name)) %>%
+  filter(date_seq >= ani_start,
+         judge_name != "unappointed",
+         !is.na(judge_name)) %>%
   group_by(date = date_seq, chamber = chamber_number) %>%
   summarise(
-    pairs = if (n_distinct(judge_name) >= 2) {
+    pairs = if (n_distinct(judge_name) >= 2)
       list(combn(unique(judge_name), 2, simplify = FALSE))
-    } else {
-      list(NULL)
-    },
-    .groups = "drop"
-  ) %>%
+    else list(NULL),
+    .groups = "drop") %>%
   unnest(pairs) %>%
-  mutate(
-    from = map_chr(pairs, 1),
-    to = map_chr(pairs, 2)
-  ) %>%
+  mutate(from = map_chr(pairs, 1),
+         to   = map_chr(pairs, 2)) %>%
   select(date, from, to)
 
-# B. stable layout: use *all* edges in 2016‑24 period -----------------------
-layout_graph <- graph_from_data_frame(distinct(edges_monthly, from, to), directed = FALSE)
+## 5c. stable Fruchterman-Reingold layout
+layout_graph <- graph_from_data_frame(distinct(edges_monthly, from, to),
+                                      directed = FALSE)
 coords <- as.data.frame(layout_with_fr(layout_graph))
 coords$judge_name <- V(layout_graph)$name
 names(coords)[1:2] <- c("x", "y")
 
-# C. prepare edge & node frames --------------------------------------------
+## 5d. prepare plotting frames
 edges_plot <- edges_monthly %>%
-  left_join(coords, by = c("from" = "judge_name")) %>%
+  left_join(coords,  by = c("from" = "judge_name")) %>%
   rename(x_start = x, y_start = y) %>%
-  left_join(coords, by = c("to" = "judge_name")) %>%
-  rename(x_end = x, y_end = y)
+  left_join(coords,  by = c("to"   = "judge_name")) %>%
+  rename(x_end   = x, y_end   = y)
 
 nodes_plot <- tidyr::crossing(coords, date = unique(edges_monthly$date))
 
-# D. build animated plot ----------------------------------------------------
-p <- ggplot() +
+## 5e. animation
+p_assigned <- ggplot() +
   geom_segment(data = edges_plot,
-               aes(x = x_start, y = y_start, xend = x_end, yend = y_end, group = interaction(from, to)),
-               alpha = 0.4) +
+               aes(x = x_start, y = y_start, xend = x_end, yend = y_end,
+                   group = interaction(from, to)),
+               alpha = edge_alpha, color = edge_gray) +
   geom_point(data = nodes_plot,
-             aes(x = x, y = y), size = 3, colour = "steelblue") +
+             aes(x = x, y = y),
+             size = node_point_size, color = "steelblue") +
   geom_text(data = nodes_plot,
-            aes(x = x, y = y, label = judge_name), vjust = 1.5, size = 3) +
-  theme_void() +
-  theme(plot.title = element_text(hjust = 0.5, size = 16)) +
+            aes(x = x, y = y, label = judge_name),
+            vjust = 2, hjust=0, size = 3) +
+  base_theme +
+  labs(title = "Chamber Network: {frame_time}") +
   transition_time(date) +
-  labs(title = 'Chamber network — {frame_time}')
+  ease_aes("linear")
 
-# E. render to GIF ----------------------------------------------------------
-animate(p, renderer = gifski_renderer("assigned.gif"),
-                width = 800, height =600, fps = 2)
+animate(p_assigned,
+        fps       = 2,
+        width     = 800,
+        height    = 600,
+        renderer  = gifski_renderer("assigned.gif"))

@@ -13,8 +13,12 @@ library(igraph)
 library(ggraph)
 library(tidygraph)
 
-data_clean <- read_rds("data_clean.rds")
-data_basic <- read_rds("data_basic.rds") 
+get_surname <- function(x) str_trim(word(x, -1)) 
+
+data_clean <- read_rds("data_clean.rds") %>%
+  mutate(judge_name = get_surname(judge_name))
+data_basic <- read_rds("data_basic.rds") %>%
+  mutate(judge_name = get_surname(judge_name))
 
 judge_pairs <- data_basic %>%
   select(doc_id, judge_name, composition_ok) %>%
