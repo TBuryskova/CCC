@@ -93,6 +93,26 @@ ggplot(dow, aes(x = factor(dow), fill = chamber_id_alt)) +
   theme(legend.position = "none", strip.text = element_blank())
 ggsave("balance_day_of_week.png")
 
+
+# =====================
+# 4. Day in the month Submission
+# =====================
+mow <- data_clean %>%
+  mutate(mow = mday(ymd(date_submission)))
+
+p_mow <- get_p_value(aov(mow ~ chamber_id_alt, mow))
+
+ggplot(mow, aes(x = factor(mow), fill = chamber_id_alt)) +
+  geom_bar(aes(y = after_stat(prop), group = chamber_id_alt), position = "dodge") +
+  scale_x_discrete(labels = c("7" = "Sa", "1" = "Su", "2" = "Mo", "3" = "Tu", "4" = "We", "5" = "Th", "6" = "Fr")) +
+  ggtitle(paste("p =", p_mow)) +
+  labs(y = "Proportion", x = "Day of the month") +
+  facet_wrap(~ chamber_id_alt, ncol = 4) +
+  theme_minimal() +
+  theme(legend.position = "none", strip.text = element_blank())
+ggsave("balance_day_of_month.png")
+
+
 # =====================
 # 5. Number of Cases by Chamber
 # =====================
