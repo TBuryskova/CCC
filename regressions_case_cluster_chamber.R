@@ -25,7 +25,7 @@ length_proceeding <- lm(FE_lp~ average_yob+ var_yob +same_background+all_differe
 
 outcome <- lm(FE_o ~  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender + year_submission,  data_cleanCE)
 
-cited <- lm(FE_c~  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender + year_submission,  data_cleanCE)
+cited <- lm(FE_c~  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender + year_submission+grounds,  data_cleanCE)
 
 length_proceeding_C <- lm(FE_lp~     n_applicants+
                             n_disputed_act +controversial+
@@ -41,7 +41,7 @@ outcome_C <- lm(FE_o~ n_applicants+
 cited_C <- lm(FE_c~ n_applicants+
                          n_disputed_act +controversial+
                          n_concerned_act + n_concerned_cact + n_topics + 
-                         + average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender + year_submission,  data_cleanCE)
+                         + average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender + year_submission+grounds,  data_cleanCE)
 
 
 clustered_se <- cluster.vcov(length_proceeding, data_cleanCE$chamber_id_alt)
@@ -56,4 +56,4 @@ clustered_se_c_C <- cluster.vcov(cited_C, data_cleanCE$chamber_id_alt)
 
 stargazer(length_proceeding, length_proceeding_C,outcome, outcome_C,cited, cited_C,
           se = list(sqrt(diag(clustered_se)), sqrt(diag(clustered_se_C)), sqrt(diag(clustered_se_outcome)), sqrt(diag(clustered_se_outcome_C)), sqrt(diag(clustered_se_c)), sqrt(diag(clustered_se_c_C))),
-          omit = c("^year", "^judge", "^n", "controversial", "Constant"))
+          omit = c("^year", "^judge", "^n", "controversial","^grounds", "Constant"))

@@ -25,7 +25,7 @@ full_model_length_proceeding <- lm(length_proceeding~judge+year_submission
 full_model_outcome <- lm(outcome~judge+year_submission
                          , data=data_clean)
 
-full_model_cited <- lm(cited~judge+year_submission
+full_model_cited <- lm(cited~judge+year_submission+grounds
                                 , data_clean)
 
 # now estimating the individual fixed effects for each outcome and each judge

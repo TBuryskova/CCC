@@ -57,7 +57,7 @@ anova(reduced_model_outcomeC, full_model_outcomeC)
 
 
 
-full_model_cited <- lm(cited~chamber_id_alt+judge
+full_model_cited <- lm(cited~chamber_id_alt+judge+grounds
                                 , data_clean)
 reduced_model_cited <- lm(cited~judge
                                    , data_clean)
@@ -67,11 +67,11 @@ anova(reduced_model_cited, full_model_cited)
 full_model_citedC <- lm(cited~chamber_id_alt+judge+year_decision+type_proceedings+importance+n_applicants+controversial+
                                       n_disputed_act +
                                       n_concerned_act + n_concerned_cact  +
-                                      n_topicsc + year_submission, data_clean)
+                                      n_topicsc +grounds +year_submission, data_clean)
 reduced_model_citedC <- lm(cited~year_decision+judge+type_proceedings+importance+n_applicants+controversial+
                                          n_disputed_act +
                                          n_concerned_act + n_concerned_cact +
-                                         n_topicsc + year_submission, data_clean)
+                                         n_topicsc +grounds+ year_submission, data_clean)
 anova(reduced_model_citedC, full_model_citedC)
 
 
