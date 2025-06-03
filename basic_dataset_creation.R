@@ -13,14 +13,8 @@ library(xtable)
 library(data.table)
 
 ccc_compositions <- read_rds("../data/rds/ccc_compositions.rds")
-ccc_disputed_acts <- read_rds("../data/rds/ccc_disputed_acts.rds")
 ccc_judges <- read_rds("../data/rds/ccc_judges.rds")
-ccc_parties <- read_rds("../data/rds/ccc_parties.rds")
-ccc_separate_opinions <- read_rds("../data/rds/ccc_separate_opinions.rds")
-ccc_subject_matter <- read_rds("../data/rds/ccc_subject_matter.rds")
-ccc_verdicts <- read_rds("../data/rds/ccc_verdicts.rds")
 ccc_metadata <- read_rds("../data/rds/ccc_metadata.rds")
-ccc_clerks<- read_rds("../data/rds/ccc_clerks.rds")
 
 
 controversial_topics <- c(
@@ -37,14 +31,26 @@ controversial_topics <- c(
   "c\u00EDrkve"
 )
 
+floor_even <- function(x) {
+  x_floor <- floor(x)
+  # Return even floor if already even, else subtract 1
+  ifelse(x_floor %% 2 == 0, x_floor, x_floor - 1)
+}
 data_basic <- ccc_metadata %>%
+ filter(ymd(date_submission)>=ymd("2016-01-01"))   %>% 
   filter(formation!="Plenum") %>% # filter away plenary decisions
   rowwise() %>%
   mutate(
-    case_id=str_replace_all(case_id," ",""),
+    case_id = str_replace_all(case_id, " ", ""),
+    year_submission = year(ymd(date_submission)),  # Moved this line up
     chamber_id = paste(
-      sort(composition$judge_id[1:3]), # Extract the first three `judge_id`s
-      collapse = ""
+      sort(composition$judge_id[1:3]),
+      collapse=""
+    ),
+    year_even = floor_even(year_submission),
+    chamber_id_alt = paste0(
+      chamber_id,
+      year_even
     ),
     judge1 = sort(composition$judge_id[1:3])[1],
     judge2 = sort(composition$judge_id[1:3])[2],
@@ -78,14 +84,12 @@ data_basic <- ccc_metadata %>%
   filter(str_length(chamber_id)==12) %>% # filter away cases decided only by the judge-rapporteur (rejected)
   mutate(year_submission=year(ymd(date_submission)) ) %>%
   mutate(date_submission=(ymd(date_submission)) ) %>%
-  
-  mutate(         has_popular_name=!is.na(popular_name)) %>%
+  mutate(         has_popular_name=!is.na(popular_name) ,
+  ) %>%
   mutate(outcome=(outcome=="granted")) %>%
   mutate(length_proceeding=case_when(length_proceeding<0 ~ NA,
                                      TRUE~length_proceeding)) %>%
   mutate(  n_citations = map_int(citations, ~ length(.x))  )
-
-data_basic <- data_basic %>%  filter(ymd(date_submission)>=ymd("2016-01-01")) 
 
 case_citations_count <- ccc_metadata %>%
   unnest(citations) %>%
@@ -97,9 +101,7 @@ case_citations_count <- ccc_metadata %>%
 data_basic <- data_basic %>% left_join(case_citations_count, by =join_by(case_id), multiple="first")
 
 data_basic <- data_basic %>% mutate(cited=case_when(!is.na(cited) ~ cited,
-                                                    TRUE ~ 0)) %>%
-  mutate(cited_per_year=cited/time_length(difftime("2025-01-01", date_decision), "years"))
-
+                                                    TRUE ~ 0)) 
 judges <- ccc_judges %>% group_by(judge_id) %>%
   summarise(judge_term_start=min(ymd(judge_term_start)),
             judge_term_end=max(ymd(judge_term_end)),

@@ -19,24 +19,24 @@ data_cleanJE<- data_cleanJE %>%
   group_by(judge) %>%
   summarize(
     gender=first(gender), uni=first(uni), background=first(background), var_yob=max(var_yob),average_yob=max(average_yob),
-       FE_lp=mean(FE_lp),FE_o=mean(FE_o),FE_cpy=mean(FE_cpy),
+       FE_lp=mean(FE_lp),FE_o=mean(FE_o),FE_c=mean(FE_c),
     scholar=first(scholar) ,
-    outcome=mean(outcome), cited_per_year=mean(cited_per_year) 
+    outcome=mean(outcome), cited=mean(cited) 
   ) %>%
 
   left_join(initial, by=c("judge"="judge_id"),suffix = c("","C"))
   
 
-length_proceeding <- lm(FE_lp~ average_yobC+ var_yobC+ scholarC+genderC, data_cleanJE)
+length_proceeding <- lm(FE_lp~ average_yobC+ var_yobC+ scholarC+genderC , data_cleanJE)
 summary(length_proceeding)
 
-outcome <- lm(FE_o ~  average_yobC+ var_yobC +scholarC+genderC,  data_cleanJE)
+outcome <- lm(FE_o ~  average_yobC+ var_yobC +scholarC+genderC ,  data_cleanJE)
 summary(outcome)
 
 
-cited_per_year <- lm(FE_cpy~  average_yobC+ var_yobC +scholarC+genderC,  data_cleanJE)
-summary(cited_per_year)
+cited <- lm(FE_c~  average_yobC+ var_yobC +scholarC+genderC ,  data_cleanJE)
+summary(cited)
 
 
-stargazer(length_proceeding,outcome ,cited_per_year,
+stargazer(length_proceeding,outcome ,cited,
           omit = c("^year", "^judge", "^n", "controversial", "Constant"))

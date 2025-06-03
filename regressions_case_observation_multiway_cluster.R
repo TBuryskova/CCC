@@ -19,29 +19,29 @@ data_cleanCE <- read_rds("data_cleanCE.rds")
 ########### Regressions fixed effects only ##################  
 
 # Regressing the chamber fixed effect on the characteristics of the chamber
-data_cleanCE<- data_cleanCE %>% group_by(chamber_id) %>% filter(n()>100) %>% ungroup()
+data_cleanCE<- data_cleanCE %>% group_by(chamber_id_alt) %>% filter(n()>100) %>% ungroup()
   
-length_proceeding <- lm(FE_lp~ average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, data_cleanCE)
+length_proceeding <- lm(FE_lp~ average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender + year_submission, data_cleanCE)
 
-outcome <- lm(FE_o ~  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender,  data_cleanCE)
+outcome <- lm(FE_o ~  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender + year_submission,  data_cleanCE)
 
-cited_per_year <- lm(FE_cpy~  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender,  data_cleanCE)
+cited <- lm(FE_c~  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender + year_submission,  data_cleanCE)
 
 length_proceeding_C <- lm(FE_lp~     n_applicants+
                             n_disputed_act +controversial+
                             n_concerned_act + n_concerned_cact + n_topics + 
-                            + average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, data_cleanCE)
+                            + average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender + year_submission, data_cleanCE)
 summary(length_proceeding_C)
 
 outcome_C <- lm(FE_o~ n_applicants+
                   n_disputed_act +controversial+
                   n_concerned_act + n_concerned_cact + n_topics + 
-                  + average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, data_cleanCE)
+                  + average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender + year_submission, data_cleanCE)
 
-cited_per_year_C <- lm(FE_cpy~ n_applicants+
+cited_C <- lm(FE_c~ n_applicants+
                          n_disputed_act +controversial+
                          n_concerned_act + n_concerned_cact + n_topics + 
-                         + average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender,  data_cleanCE)
+                         + average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender + year_submission,  data_cleanCE)
 
 
 clustered_se <- cluster.vcov(length_proceeding, data_cleanCE$judge)
@@ -51,9 +51,9 @@ clustered_se_C <- cluster.vcov(length_proceeding_C, data_cleanCE$judge)
 clustered_se_outcome <- cluster.vcov(outcome, data_cleanCE$judge)
 clustered_se_outcome_C <- cluster.vcov(outcome_C, data_cleanCE$judge)
 
-clustered_se_cpy <- cluster.vcov(cited_per_year, data_cleanCE$judge)
-clustered_se_cpy_C <- cluster.vcov(cited_per_year_C, data_cleanCE$judge)
+clustered_se_c <- cluster.vcov(cited, data_cleanCE$judge)
+clustered_se_c_C <- cluster.vcov(cited_C, data_cleanCE$judge)
 
-stargazer(length_proceeding, length_proceeding_C,outcome, outcome_C,cited_per_year, cited_per_year_C,
-          se = list(sqrt(diag(clustered_se)), sqrt(diag(clustered_se_C)), sqrt(diag(clustered_se_outcome)), sqrt(diag(clustered_se_outcome_C)), sqrt(diag(clustered_se_cpy)), sqrt(diag(clustered_se_cpy_C))),
+stargazer(length_proceeding, length_proceeding_C,outcome, outcome_C,cited, cited_C,
+          se = list(sqrt(diag(clustered_se)), sqrt(diag(clustered_se_C)), sqrt(diag(clustered_se_outcome)), sqrt(diag(clustered_se_outcome_C)), sqrt(diag(clustered_se_c)), sqrt(diag(clustered_se_c_C))),
           omit = c("^year", "^judge", "^n", "controversial", "Constant"))

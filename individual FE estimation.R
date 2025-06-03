@@ -19,13 +19,13 @@ data_clean <- read_rds("data_clean.rds")
 
 ########### Regressions fixed effects only ##################  
 
-full_model_length_proceeding <- lm(length_proceeding~judge+chamber_id
+full_model_length_proceeding <- lm(length_proceeding~judge+year_submission
                                    , data_clean)
 
-full_model_outcome <- lm(outcome~judge+chamber_id
+full_model_outcome <- lm(outcome~judge+year_submission
                          , data=data_clean)
 
-full_model_cited_per_year <- lm(cited_per_year~judge+chamber_id
+full_model_cited <- lm(cited~judge+year_submission
                                 , data_clean)
 
 # now estimating the individual fixed effects for each outcome and each judge
@@ -49,14 +49,14 @@ judge_effects_o <- data.frame(
 data_cleanJE <- left_join(data_cleanJE,judge_effects_o, by="judge")
 
 
-coefficients <- coef(full_model_cited_per_year)
+coefficients <- coef(full_model_cited)
 judge_effects <- coefficients[grepl("judge", names(coefficients))]
-judge_effects_cpy <- data.frame(
+judge_effects_c <- data.frame(
   judge = str_replace(names(judge_effects) , "judge",""),
-  FE_cpy = judge_effects, row.names= NULL
+  FE_c = judge_effects, row.names= NULL
 )
 
-data_cleanJE <- left_join(data_cleanJE,judge_effects_cpy, by="judge")
+data_cleanJE <- left_join(data_cleanJE,judge_effects_c, by="judge")
 
 
 saveRDS(data_cleanJE, file="data_cleanJE.rds")

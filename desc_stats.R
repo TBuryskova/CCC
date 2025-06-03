@@ -63,7 +63,7 @@ make_desc_table <- function(df) {
   ## 3f. add counts --------------------------------------------------------
   desc <- desc %>%
     add_row(variable = "n_groups",    mean = nrow(groups)) %>%
-    add_row(variable = "n_chambers",  mean = n_distinct(df$chamber_id)) %>%
+    add_row(variable = "n_chambers",  mean = n_distinct(df$chamber_id_alt)) %>%
     add_row(variable = "n_judges",    mean = n_distinct(df$judge_name))
   
   ## 3g. pretty-print numbers ---------------------------------------------
