@@ -53,8 +53,10 @@ judge_pairs_time <- data_basic %>%
   ) %>%
   unnest(pairs) %>%
   rename(judge1 = V1, judge2 = V2)
-
+saveRDS(judge_pairs_time, "judge_pairs_time.rds")
 all_months <- sort(unique(judge_pairs_time$month))
+
+saveRDS(all_months, "all_months.rds")
 
 edges_cumulative <- map_dfr(all_months, function(m) {
   judge_pairs_time %>%
@@ -69,11 +71,15 @@ edges_cumulative <- map_dfr(all_months, function(m) {
               .groups          = "drop") %>%
     mutate(month = m)
 })
+saveRDS(edges_cumulative, "edges_cumulative.rds")
+
+
 
 nodes_basic <- tibble(name = unique(c(edges_cumulative$j1, edges_cumulative$j2)))
 
 g_basic     <- tbl_graph(nodes = nodes_basic, edges = edges_cumulative, directed = FALSE)
 layout_basic <- create_layout(g_basic, layout = "stress")
+
 
 p_basic <- ggraph(layout_basic) +
   geom_edge_link(aes(width = n_cases_together, color = prop_ok),
@@ -113,6 +119,8 @@ judge_pairs_time_clean <- data_clean %>%
   rename(judge1 = V1, judge2 = V2)
 
 all_months_clean <- sort(unique(judge_pairs_time_clean$month))
+saveRDS(all_months_clean, "all_months_clean.rds")
+
 
 edges_cumulative_clean <- map_dfr(all_months_clean, function(m) {
   judge_pairs_time_clean %>%
@@ -125,10 +133,13 @@ edges_cumulative_clean <- map_dfr(all_months_clean, function(m) {
     summarise(n_cases_together = n(), .groups = "drop") %>%
     mutate(month = m)
 })
+saveRDS(edges_cumulative_clean, "edges_cumulative_clean.rds")
 
 nodes_clean  <- tibble(name = unique(c(edges_cumulative_clean$j1, edges_cumulative_clean$j2)))
 g_clean      <- tbl_graph(nodes = nodes_clean, edges = edges_cumulative_clean, directed = FALSE)
 layout_clean <- create_layout(g_clean, layout = "stress")
+saveRDS(layout_clean, "layout_clean.rds")
+
 
 p_clean <- ggraph(layout_clean) +
   geom_edge_link(aes(width = n_cases_together),
