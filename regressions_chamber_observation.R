@@ -15,13 +15,11 @@ data_cleanCE <- read_rds("data_cleanCE.rds")
 
 # Regressing the chamber fixed effect on the characteristics of the chamber
 data_cleanCE<- data_cleanCE %>% group_by(chamber_id_alt) %>%
-  group_by(chamber_id_alt) %>%
   summarize(
     gender=first(gender), uni=first(uni), background=first(background), var_yob=max(var_yob),average_yob=max(average_yob),
     length_proceeding=mean(length_proceeding),n_applicants=mean(n_applicants), n_disputed_act=mean(n_disputed_act),
     controversial=mean(controversial),n_concerned_act=mean(n_concerned_act),n_concerned_cact=mean(n_concerned_cact),n_topics=mean(n_topics),
     FE_lp=mean(FE_lp),FE_o=mean(FE_o),FE_c=mean(FE_c),
-
     outcome=mean(outcome), cited=mean(cited) ,
     same_background=mean(same_background),
     all_different_background=mean(all_different_background),

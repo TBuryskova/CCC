@@ -45,13 +45,13 @@ reduced_model_outcome <- lm(outcome~judge, data_clean)
 anova(reduced_model_outcome, full_model_outcome)
 
 full_model_outcomeC <- lm(outcome~chamber_id_alt+judge+type_proceedings+importance+n_applicants+controversial+
-                                      n_disputed_act +
-                                      n_concerned_act + n_concerned_cact  +
-                                      n_topicsc + year_submission, data_clean)
+                            n_disputed_act +
+                            n_concerned_act + n_concerned_cact  +
+                            n_topicsc + year_submission, data_clean)
 reduced_model_outcomeC <- lm(outcome~type_proceedings+judge+importance+n_applicants+controversial+
-                                         n_disputed_act +
-                                         n_concerned_act + n_concerned_cact +
-                                         n_topicsc + year_submission, data_clean)
+                               n_disputed_act +
+                               n_concerned_act + n_concerned_cact +
+                               n_topicsc + year_submission, data_clean)
 anova(reduced_model_outcomeC, full_model_outcomeC)
 
 
@@ -73,6 +73,26 @@ reduced_model_citedC <- lm(cited~year_decision+judge+type_proceedings+importance
                                          n_concerned_act + n_concerned_cact +
                                          n_topicsc +grounds+ year_submission, data_clean)
 anova(reduced_model_citedC, full_model_citedC)
+
+
+full_model_decided_on_merits <- lm(decided_on_merits~chamber_id_alt+judge
+                         , data=data_clean)
+reduced_model_decided_on_merits <- lm(decided_on_merits~judge, data_clean)
+
+anova(reduced_model_decided_on_merits, full_model_decided_on_merits)
+
+
+full_model_decided_on_meritsC <- lm(decided_on_merits~chamber_id_alt+judge+type_proceedings+importance+n_applicants+controversial+
+                            n_disputed_act +
+                            n_concerned_act + n_concerned_cact  +
+                            n_topicsc + year_submission, data_clean)
+reduced_model_decided_on_meritsC <- lm(decided_on_merits~type_proceedings+judge+importance+n_applicants+controversial+
+                               n_disputed_act +
+                               n_concerned_act + n_concerned_cact +
+                               n_topicsc + year_submission, data_clean)
+anova(reduced_model_decided_on_meritsC, full_model_decided_on_meritsC)
+
+
 
 
 
@@ -105,5 +125,17 @@ chamber_effects_c <- data.frame(
 )
 
 data_cleanCE <- left_join(data_cleanCE,chamber_effects_c, by="chamber_id_alt")
+
+
+coefficients <- coef(full_model_decided_on_merits)
+chamber_effects <- coefficients[grepl("chamber_id_alt", names(coefficients))]
+chamber_effects_m <- data.frame(
+  chamber_id_alt = str_replace(names(chamber_effects) , "chamber_id_alt",""),
+  FE_m = chamber_effects, row.names= NULL
+)
+
+data_cleanCE <- left_join(data_cleanCE,chamber_effects_m, by="chamber_id_alt")
+
+
 
 saveRDS(data_cleanCE, file="data_cleanCE.rds")

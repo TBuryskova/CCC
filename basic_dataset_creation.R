@@ -89,7 +89,9 @@ data_basic <- ccc_metadata %>%
   mutate(outcome=(outcome=="granted")) %>%
   mutate(length_proceeding=case_when(length_proceeding<0 ~ NA,
                                      TRUE~length_proceeding)) %>%
-  mutate(  n_citations = map_int(citations, ~ length(.x))  )
+  mutate(  n_citations = map_int(citations, ~ length(.x)) ,  decided_on_merits = (grounds=="merits") )
+ 
+
 
 case_citations_count <- ccc_metadata %>%
   unnest(citations) %>%
