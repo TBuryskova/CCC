@@ -22,7 +22,7 @@ chambers_daily <- chambers %>%
                          ~ seq(.x, .y, by = "day"))) %>%
   unnest(date_seq) %>% select(-start_date,-end_date) 
 
-
+ccc_judges <- read_rds("../data/rds2025/ccc_judges.rds")
 judges <- ccc_judges %>% group_by(judge_id) %>%
   summarise(judge_term_start=(min(ymd(judge_term_start))),
             judge_term_end=ymd(max(ymd(judge_term_end))),
