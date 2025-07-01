@@ -11,7 +11,7 @@ chambers <- chambers %>%
   mutate(
     start_date = dmy(start_date),
     end_date = dmy(end_date)) %>% 
-  mutate(end_date=case_when(is.na(end_date)~ dmy("31/12/2024"),
+  mutate(end_date=case_when(is.na(end_date)~ dmy("31/12/2025"),
                             TRUE ~ end_date) )%>%
   rename(formation=chamber_id) %>%
   rename(asjudge_id=judge_id) %>%

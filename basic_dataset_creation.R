@@ -14,29 +14,29 @@ library(data.table)
 
 ccc_compositions <- read_rds("../data/rds2025/ccc_compositions.rds")
 ccc_judges <- read_rds("../data/rds2025/ccc_judges.rds")
-
+# 
 # ccc_metadata <- read_rds("../data/rds2025/ccc_metadata.rds")
 # ccc_texts <- read_rds("../data/rds2025/ccc_texts.rds")
-# get_compositions = function(metadata, texts, judges){ 
+# get_compositions = function(metadata, texts, judges){
 #   data = left_join(metadata, texts, by = join_by(doc_id)) %>%
 #     mutate(composition = pmap(., function(doc_id, text, ...) {
 #       text = text |>
 #         str_split("\\n\\n") |>
 #         unlist()
-#       
+# 
 #       text_temp = paste0(head(text, 3), collapse = " ")
-#       
-#       
+# 
+# 
 #       found_judges = judges |>
 #         select(judge_name, judge_id, judge_name_lemmatized) |>
 #         filter(str_detect(string = text_temp, pattern = judge_name_lemmatized)) |>
 #         distinct() |>
 #         mutate(position = str_locate(string = text_temp, pattern = judge_name_lemmatized) |> as_tibble()) |>
 #         select(-judge_name_lemmatized)
-#       
+# 
 #       if(nrow(found_judges) == 4) {found_judges = found_judges |>
 #         filter(position[[1]] != max(position[[1]]))}
-#       
+# 
 #       found_judges |>
 #         select(judge_name, judge_id)
 #     }, .progress = TRUE)) |>
@@ -46,9 +46,9 @@ ccc_judges <- read_rds("../data/rds2025/ccc_judges.rds")
 # 
 # 
 # ccc_metadata <- get_compositions(metadata = ccc_metadata, texts = ccc_texts, judges = ccc_judges)
-saveRDS(ccc_metadata, file="ccc_metadata.rds")
+# saveRDS(ccc_metadata, file="ccc_metadata.rds")
 
-ccc_metadata <- read_rds("../ccc_metadata.rds")
+ccc_metadata <- read_rds("ccc_metadata.rds")
 
 
 controversial_topics <- c(
@@ -191,7 +191,7 @@ chambers <- chambers %>%
   mutate(
     start_date = dmy(start_date),
     end_date = dmy(end_date)) %>% 
-  mutate(end_date=case_when(is.na(end_date)~ dmy("31/12/2024"),
+  mutate(end_date=case_when(is.na(end_date)~ dmy("31/12/2025"),
                             TRUE ~ end_date) )%>%
   rename(formation=chamber_id) %>%
   rename(asjudge_id=judge_id) 
@@ -201,7 +201,7 @@ substitute <- substitute %>%
   mutate(
     start_date = dmy(start_date),
     end_date = dmy(end_date)) %>% 
-  mutate(end_date=case_when(is.na(end_date)~ dmy("31/12/2024"),
+  mutate(end_date=case_when(is.na(end_date)~ dmy("31/12/2025"),
                             TRUE ~ end_date) )%>%
   rename(formation=chamber_id) %>%
   rename(subjudge_id=judge_id) 

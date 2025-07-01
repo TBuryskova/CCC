@@ -41,15 +41,15 @@ data_cleanCE_nonmerits <- data_cleanCE_nonmerits  %>% group_by(chamber_id_alt) %
     same_uni=mean(same_uni), scholar=mean(scholar)
   )
 
-model_lp_merits <- lm(FE_lp ~ gender + scholar + same_uni +  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, data_cleanCE_merits)
-model_lp_nonmerits <- lm(FE_lp ~ gender + scholar + same_uni +  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, data_cleanCE_nonmerits)
+model_lp_merits <- lm(FE_lp ~  average_yob+ var_yob+same_background+all_different_background +  scholar + same_uni   +scholar+same_uni+gender, data_cleanCE_merits)
+model_lp_nonmerits <- lm(FE_lp ~ average_yob+ var_yob+same_background+all_different_background +  scholar + same_uni   +scholar+same_uni+gender, data_cleanCE_nonmerits)
 
-model_o_merits <- lm(FE_o ~ gender + scholar + same_uni +  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, data_cleanCE_merits)
-model_o_nonmerits <- lm(FE_o ~ gender + scholar + same_uni +  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, data_cleanCE_nonmerits)
+model_o_merits <- lm(FE_o ~ average_yob+ var_yob+same_background+all_different_background +  scholar + same_uni   +scholar+same_uni+gender, data_cleanCE_merits)
+model_o_nonmerits <- lm(FE_o ~ average_yob+ var_yob+same_background+all_different_background +  scholar + same_uni   +scholar+same_uni+gender, data_cleanCE_nonmerits)
 
 
-model_c_merits <- lm(FE_c ~ gender + scholar + same_uni +  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, data_cleanCE_merits)
-model_c_nonmerits <- lm(FE_c ~ gender + scholar + same_uni +  average_yob+ var_yob +same_background+all_different_background+scholar+same_uni+gender, data_cleanCE_nonmerits)
+model_c_merits <- lm(FE_c ~ average_yob+ var_yob+same_background+all_different_background +  scholar + same_uni   +scholar+same_uni+gender, data_cleanCE_merits)
+model_c_nonmerits <- lm(FE_c ~ average_yob+ var_yob+same_background+all_different_background +  scholar + same_uni   +scholar+same_uni+gender, data_cleanCE_nonmerits)
 
 
 stargazer(model_lp_merits, model_lp_nonmerits,model_o_merits,model_o_nonmerits, model_c_merits,model_c_nonmerits,

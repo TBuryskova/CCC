@@ -94,7 +94,8 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   selected_month <- reactive({
-    parse_date_time(input$month, orders = "b Y")  # from lubridate
+    # Convert "Jan 2016" -> "2016-01-01"
+    as.Date(paste0("01 ", input$month), format = "%d %b %Y")
   })
   output$graphOutput <- renderUI({
     req(input$graph_choice)  # wait until input$graph_choice is available
